@@ -1,0 +1,2497 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Casino Blackjack — Silk Morphism P2P</title>
+  
+  <!-- Web App & PWA Settings -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠</text></svg>">
+  
+  <!-- Google Fonts: Inter & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- PeerJS CDN -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <!-- QRCode.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+          },
+          colors: {
+            silkBg: '#020f0a',
+            silkGlass: 'rgba(5, 29, 19, 0.65)',
+            silkBorder: 'rgba(16, 185, 129, 0.25)',
+            goldAccent: '#fbbf24',
+            goldDark: '#d97706',
+            emeraldGlow: '#10b981',
+            feltGreen: '#064e3b',
+            feltDark: '#022c22'
+          },
+          animation: {
+            'card-flip': 'cardFlip 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+            'chip-pop': 'chipPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+            'pulse-glow': 'pulseGlow 2s infinite alternate',
+            'float-up': 'floatUp 1.5s ease-out forwards',
+          },
+          keyframes: {
+            cardFlip: {
+              '0%': { transform: 'rotateY(180deg) scale(0.9)', opacity: '0.8' },
+              '100%': { transform: 'rotateY(0deg) scale(1)', opacity: '1' }
+            },
+            chipPop: {
+              '0%': { transform: 'scale(0.5)', opacity: '0' },
+              '100%': { transform: 'scale(1)', opacity: '1' }
+            },
+            pulseGlow: {
+              '0%': { boxShadow: '0 0 10px rgba(16,185,129,0.2)' },
+              '100%': { boxShadow: '0 0 25px rgba(16,185,129,0.5)' }
+            },
+            floatUp: {
+              '0%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+              '100%': { opacity: '0', transform: 'translateY(-40px) scale(1.15)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Global & Silk Theme Overrides */
+    body {
+      background-color: #020f0a;
+      background-image: 
+        radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.22) 0%, transparent 60%),
+        radial-gradient(circle at 80% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 10% 90%, rgba(5, 150, 105, 0.15) 0%, transparent 45%);
+      background-attachment: fixed;
+      color: #f3f4f6;
+      font-family: 'Inter', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      overflow-x: hidden;
+    }
+
+    /* Silk Weave Background Overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.012) 0px, rgba(255, 255, 255, 0.012) 2px, transparent 2px, transparent 6px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* 4-Tier Silk Surfaces */
+    .silk-surface {
+      background: rgba(4, 24, 16, 0.72);
+      backdrop-filter: blur(26px) saturate(170%);
+      -webkit-backdrop-filter: blur(26px) saturate(170%);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.12);
+    }
+
+    .silk-inset {
+      background: rgba(1, 12, 8, 0.88);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8), 0 1px 1px rgba(255, 255, 255, 0.05);
+    }
+
+    .felt-panel {
+      background: radial-gradient(circle at 50% 40%, #064e3b 0%, #022c22 75%, #011712 100%);
+      border: 2px solid rgba(251, 191, 36, 0.25);
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 15px 35px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Tactile Div Buttons */
+    .btn-div {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-div:hover {
+      transform: translateY(-1.5px);
+      filter: brightness(1.12);
+    }
+
+    .btn-div:active {
+      transform: scale(0.968) translateY(1px);
+      filter: brightness(0.95);
+    }
+
+    .btn-div::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(60deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      transform: rotate(30deg) translateY(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    .btn-div:hover::after {
+      transform: rotate(30deg) translateY(100%);
+    }
+
+    .btn-div[data-disabled="true"] {
+      opacity: 0.45;
+      pointer-events: none;
+      filter: grayscale(0.8);
+      cursor: not-allowed;
+    }
+
+    /* Playing Card Styles */
+    .poker-card {
+      width: 58px;
+      height: 84px;
+      border-radius: 7px;
+      background: #ffffff;
+      color: #111827;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0,0,0,0.1);
+      position: relative;
+      font-weight: 700;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transform-style: preserve-3d;
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 640px) {
+      .poker-card {
+        width: 72px;
+        height: 104px;
+        border-radius: 9px;
+      }
+    }
+
+    .poker-card.red-suit {
+      color: #dc2626;
+    }
+
+    .poker-card.back {
+      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+      border: 2px solid #3b82f6;
+    }
+
+    .poker-card.back::before {
+      content: '♠♥';
+      position: absolute;
+      inset: 4px;
+      border: 1px dashed rgba(255, 255, 255, 0.25);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.2);
+      font-size: 14px;
+      letter-spacing: 2px;
+    }
+
+    /* Live Game Viewport Lock */
+    body.is-in-game {
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(2, 15, 10, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(16, 185, 129, 0.3);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(16, 185, 129, 0.6);
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen text-gray-100 relative">
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+  <!-- MAIN CONTAINER ARCHITECTURE -->
+  <div id="appContainer" class="flex flex-col flex-1 w-full relative z-10">
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- HEADER NAVBAR (Always Rendered; Dynamic Buttons)               -->
+    <!-- ------------------------------------------------------------- -->
+    <header class="w-full h-14 px-3 sm:px-6 silk-surface border-b border-emerald-500/20 flex items-center justify-between shrink-0 z-40">
+      <!-- Brand & Table Info -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-600 to-amber-500 flex items-center justify-center shadow-lg shadow-emerald-950/60 font-serif font-black text-white text-lg">
+          ♠
+        </div>
+        <div>
+          <h1 class="font-serif font-bold text-base sm:text-lg tracking-wide text-amber-300 leading-tight">Blackjack</h1>
+          <p class="text-[10px] text-emerald-400/80 font-mono hidden sm:block">Falas P2P Silk Engine</p>
+        </div>
+
+        <!-- Room Code Pill (In-Game / Lobby) -->
+        <div id="headerRoomPill" class="hidden items-center ml-2 sm:ml-4 px-2.5 py-1 rounded-full silk-inset cursor-pointer hover:border-amber-400/50 transition-colors" title="Click to copy invite link">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span>
+          <span class="text-xs font-mono font-bold text-amber-200 uppercase" id="headerRoomCode">----</span>
+          <svg class="w-3.5 h-3.5 ml-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        </div>
+      </div>
+
+      <!-- Action Utilities -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <!-- Hisab Drawer Trigger -->
+        <div id="btnHisab" class="btn-div hidden px-2.5 py-1.5 rounded-lg silk-surface text-xs font-medium text-amber-300 border border-amber-500/30 hover:border-amber-400">
+          <svg class="w-4 h-4 sm:mr-1 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+          <span class="hidden sm:inline">Hisab</span>
+          <span id="hisabBadge" class="ml-1 text-[10px] bg-amber-500/30 text-amber-200 px-1.5 py-0.2 rounded-full font-bold">0</span>
+        </div>
+
+        <!-- Strategy / Rules Modal Trigger -->
+        <div id="btnRules" class="btn-div w-8 h-8 rounded-lg silk-surface text-gray-300 hover:text-white border border-emerald-500/20">
+          <span class="font-bold text-xs">?</span>
+        </div>
+
+        <!-- Mute Sound Toggle -->
+        <div id="btnSound" class="btn-div w-8 h-8 rounded-lg silk-surface text-emerald-400 border border-emerald-500/20" title="Toggle Sound">
+          <svg id="soundOnIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"></path></svg>
+          <svg id="soundOffIcon" class="w-4 h-4 hidden text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+        </div>
+
+        <!-- Fullscreen Toggle -->
+        <div id="btnFullscreen" class="btn-div w-8 h-8 rounded-lg silk-surface text-gray-300 hover:text-white border border-emerald-500/20 hidden sm:flex" title="Toggle Fullscreen">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+        </div>
+
+        <!-- Host Settle Debt Button -->
+        <div id="btnHostSettle" class="btn-div hidden px-2.5 py-1.5 rounded-lg bg-emerald-600/30 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-600/50 text-xs font-semibold">
+          Settle
+        </div>
+
+        <!-- Leave Room Button -->
+        <div id="btnLeave" class="btn-div hidden px-2.5 py-1.5 rounded-lg bg-red-950/60 text-red-300 border border-red-500/30 hover:bg-red-900/60 text-xs font-semibold">
+          Leave
+        </div>
+      </div>
+    </header>
+
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- SCREEN 1: HOST SETUP / MAIN MENU                              -->
+    <!-- ------------------------------------------------------------- -->
+    <main id="hostSetupScreen" class="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 flex flex-col items-center justify-center">
+      <div class="w-full silk-surface rounded-2xl p-5 sm:p-8 border border-emerald-500/30 shadow-2xl relative overflow-hidden">
+        
+        <!-- Header Banner -->
+        <div class="text-center mb-6">
+          <h2 class="text-2xl sm:text-3xl font-serif font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-500">
+            Nepali Falas Casino Blackjack
+          </h2>
+          <p class="text-xs sm:text-sm text-emerald-300/80 mt-1">
+            4-Tier Dark Silk P2P Table • Zero-Server • Instant Host & Join
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Left Column: Create Table Options -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 border-b border-emerald-500/20 pb-1">
+              1. Host Table Settings
+            </h3>
+            
+            <!-- Player Name Input -->
+            <div>
+              <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Your Name / Nickname</label>
+              <input type="text" id="hostNameInput" placeholder="John Doe" maxlength="14" class="w-full px-3.5 py-2.5 rounded-xl silk-inset text-sm font-semibold text-amber-200 focus:outline-none focus:border-amber-400 transition-colors">
+            </div>
+
+            <!-- Table Capacity & Base Bet -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Max Seats</label>
+                <select id="hostSeatsSelect" class="w-full px-3 py-2.5 rounded-xl silk-inset text-sm font-semibold text-emerald-200 focus:outline-none focus:border-amber-400">
+                  <option value="2">2 Players</option>
+                  <option value="3">3 Players</option>
+                  <option value="4" selected>4 Players</option>
+                  <option value="5">5 Players</option>
+                  <option value="6">6 Players</option>
+                  <option value="7">7 Players</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Base Bet (Rs.)</label>
+                <input type="number" id="hostBaseBetInput" value="20" min="5" step="5" class="w-full px-3 py-2.5 rounded-xl silk-inset text-sm font-semibold text-amber-300 focus:outline-none focus:border-amber-400">
+              </div>
+            </div>
+
+            <!-- Quick Base Bet Chips -->
+            <div class="flex items-center gap-1.5 pt-1">
+              <span class="text-[10px] text-gray-400 uppercase font-bold">Presets:</span>
+              <div class="preset-chip btn-div px-2 py-0.5 rounded-md silk-inset text-xs font-bold text-amber-300" data-val="5">5</div>
+              <div class="preset-chip btn-div px-2 py-0.5 rounded-md silk-inset text-xs font-bold text-amber-300" data-val="10">10</div>
+              <div class="preset-chip btn-div px-2 py-0.5 rounded-md silk-inset text-xs font-bold text-amber-300" data-val="20">20</div>
+              <div class="preset-chip btn-div px-2 py-0.5 rounded-md silk-inset text-xs font-bold text-amber-300" data-val="50">50</div>
+              <div class="preset-chip btn-div px-2 py-0.5 rounded-md silk-inset text-xs font-bold text-amber-300" data-val="100">100</div>
+            </div>
+
+            <!-- Turn Timer -->
+            <div>
+              <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Turn Timer</label>
+              <select id="hostTimerSelect" class="w-full px-3 py-2.5 rounded-xl silk-inset text-sm font-semibold text-emerald-200 focus:outline-none focus:border-amber-400">
+                <option value="15">15 Seconds (Fast)</option>
+                <option value="25" selected>25 Seconds (Standard)</option>
+                <option value="40">40 Seconds (Relaxed)</option>
+                <option value="60">60 Seconds</option>
+                <option value="0">Off (No Limit)</option>
+              </select>
+            </div>
+
+            <!-- Collapsible Casino House Rules Panel -->
+            <div class="border border-emerald-500/20 rounded-xl overflow-hidden silk-inset">
+              <div id="btnToggleHouseRules" class="btn-div w-full px-3 py-2 flex items-center justify-between text-xs font-semibold text-amber-300 bg-emerald-950/40">
+                <span>Casino House Rules Configuration</span>
+                <svg id="houseRulesArrow" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+              <div id="houseRulesContent" class="hidden p-3 space-y-2 text-xs border-t border-emerald-500/20">
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-300">Shoe Decks:</span>
+                  <select id="ruleDecks" class="bg-black/60 text-amber-200 rounded px-2 py-1 text-xs border border-emerald-500/30">
+                    <option value="6" selected>6-Deck Shoe</option>
+                    <option value="8">8-Deck Shoe</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-300">Dealer Soft 17:</span>
+                  <select id="ruleSoft17" class="bg-black/60 text-amber-200 rounded px-2 py-1 text-xs border border-emerald-500/30">
+                    <option value="S17" selected>Stands on S17</option>
+                    <option value="H17">Hits on Soft 17</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-300">Blackjack Payout:</span>
+                  <select id="ruleBJPay" class="bg-black/60 text-amber-200 rounded px-2 py-1 text-xs border border-emerald-500/30">
+                    <option value="1.5" selected>3:2 (Standard)</option>
+                    <option value="1.2">6:5</option>
+                  </select>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-300">Late Surrender:</span>
+                  <select id="ruleSurrender" class="bg-black/60 text-amber-200 rounded px-2 py-1 text-xs border border-emerald-500/30">
+                    <option value="true" selected>Allowed (0.5x)</option>
+                    <option value="false">Off</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Host Action Buttons -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div id="btnCreateHostTable" class="btn-div w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-950/60 border border-emerald-400/40">
+                Create Room (P2P)
+              </div>
+              <div id="btnPlayVsBots" class="btn-div w-full py-3 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 text-white font-bold text-sm shadow-lg shadow-amber-950/60 border border-amber-400/40">
+                Play vs AI Bots
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Join Room & Connection Status -->
+          <div class="space-y-4 flex flex-col justify-between border-t md:border-t-0 md:border-l border-emerald-500/20 pt-4 md:pt-0 md:pl-6">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 border-b border-emerald-500/20 pb-1">
+                2. Join Existing Room
+              </h3>
+              <p class="text-xs text-gray-400 my-2">Enter the 4-character table code provided by your friend.</p>
+              
+              <div class="space-y-3 mt-3">
+                <div>
+                  <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Table Code</label>
+                  <input type="text" id="joinCodeInput" placeholder="e.g. A7X9" uppercase maxlength="4" class="w-full px-3.5 py-2.5 rounded-xl silk-inset text-center font-mono text-lg font-black tracking-widest text-amber-300 focus:outline-none focus:border-amber-400 transition-colors uppercase">
+                </div>
+
+                <div>
+                  <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Your Name</label>
+                  <input type="text" id="joinNameInput" placeholder="John Doe" maxlength="14" class="w-full px-3.5 py-2.5 rounded-xl silk-inset text-sm font-semibold text-amber-200 focus:outline-none focus:border-amber-400">
+                </div>
+
+                <div id="btnJoinTable" class="btn-div w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-gray-950 font-black text-sm shadow-lg shadow-amber-950/60 border border-amber-300/50">
+                  Join Room →
+                </div>
+              </div>
+            </div>
+
+            <!-- P2P Status Indicator Box -->
+            <div class="silk-inset p-3.5 rounded-xl border border-emerald-500/20">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-400">PeerJS Network Status:</span>
+                <span id="peerStatusBadge" class="font-bold text-amber-400">Connecting...</span>
+              </div>
+              <p class="text-[10px] text-gray-400 mt-1">
+                Direct WebRTC peer-to-peer link. Zero third-party backend servers.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- SCREEN 2: VISITOR QUICK-JOIN SCREEN (When opening ?room=XXXX)  -->
+    <!-- ------------------------------------------------------------- -->
+    <main id="visitorJoinScreen" class="hidden flex-1 max-w-md w-full mx-auto p-4 flex flex-col items-center justify-center">
+      <div class="w-full silk-surface rounded-2xl p-6 border border-amber-500/30 text-center shadow-2xl space-y-4">
+        <div class="w-12 h-12 mx-auto rounded-full bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-2xl font-serif">
+          ♠
+        </div>
+        <h2 class="text-xl font-serif font-bold text-amber-300">You've Been Invited!</h2>
+        <p class="text-xs text-gray-300">
+          Joining Table Code: <span id="visitorRoomCodeBadge" class="font-mono font-bold text-amber-400 text-base">----</span>
+        </p>
+
+        <div class="text-left">
+          <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Enter Your Display Name</label>
+          <input type="text" id="visitorNameInput" placeholder="John Doe" maxlength="14" class="w-full px-3.5 py-2.5 rounded-xl silk-inset text-sm font-semibold text-amber-200 focus:outline-none focus:border-amber-400">
+        </div>
+
+        <div id="btnVisitorJoinConfirm" class="btn-div w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm border border-emerald-400/40">
+          Join Casino Table Now
+        </div>
+      </div>
+    </main>
+
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- SCREEN 3: LOBBY SCREEN (Waiting Room before Start)            -->
+    <!-- ------------------------------------------------------------- -->
+    <main id="lobbyScreen" class="hidden flex-1 max-w-3xl w-full mx-auto p-4 flex flex-col items-center justify-center">
+      <div class="w-full silk-surface rounded-2xl p-6 border border-emerald-500/30 shadow-2xl space-y-5">
+        
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-emerald-500/20 pb-4">
+          <div>
+            <h2 class="text-xl font-serif font-bold text-amber-300 text-center sm:text-left">Table Lobby</h2>
+            <p class="text-xs text-emerald-300/80 text-center sm:text-left">Waiting for players to join seat positions</p>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <div id="lobbyCodeDisplay" class="px-3 py-1.5 rounded-xl silk-inset font-mono font-black text-amber-300 text-lg border border-amber-500/30">
+              ----
+            </div>
+            <div id="btnShareLobby" class="btn-div px-3 py-1.5 rounded-xl silk-surface text-xs font-bold text-amber-300 border border-amber-500/30 hover:border-amber-400">
+              Share Link 🔗
+            </div>
+          </div>
+        </div>
+
+        <!-- House Rules Pills Banner -->
+        <div class="flex flex-wrap items-center justify-center gap-2 text-[11px] text-emerald-200/80">
+          <span class="px-2.5 py-1 rounded-full silk-inset" id="lobbyRuleDecks">6 Decks</span>
+          <span class="px-2.5 py-1 rounded-full silk-inset" id="lobbyRuleSoft17">Stands S17</span>
+          <span class="px-2.5 py-1 rounded-full silk-inset" id="lobbyRuleBJ">BJ Pays 3:2</span>
+          <span class="px-2.5 py-1 rounded-full silk-inset" id="lobbyRuleSurrender">Surrender On</span>
+        </div>
+
+        <!-- Seated Players Grid -->
+        <div class="space-y-2">
+          <h3 class="text-xs font-bold uppercase text-amber-400 tracking-wider">Seated Players (<span id="lobbyPlayerCount">0</span>/<span id="lobbyMaxSeats">4</span>)</h3>
+          <div id="lobbyPlayerList" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Dynamic Lobby Player Cards inserted here -->
+          </div>
+        </div>
+
+        <!-- QR Code Drawer Modal/Area -->
+        <div class="flex justify-center pt-2">
+          <div id="lobbyQrContainer" class="p-2 bg-white rounded-xl shadow-lg inline-block"></div>
+        </div>
+
+        <!-- Lobby Action Controls -->
+        <div class="flex items-center justify-between pt-3 border-t border-emerald-500/20">
+          <div id="btnLobbyLeave" class="btn-div px-4 py-2.5 rounded-xl bg-red-950/60 text-red-300 border border-red-500/30 text-xs font-bold">
+            ← Leave
+          </div>
+
+          <div class="flex items-center gap-2">
+            <div id="btnAddBotLobby" class="btn-div hidden px-3.5 py-2.5 rounded-xl silk-surface text-amber-300 border border-amber-500/40 text-xs font-bold">
+              + Add Bot
+            </div>
+            <div id="btnStartGameLobby" class="btn-div hidden px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-black tracking-wide border border-emerald-400/40 shadow-lg shadow-emerald-950/60">
+              Start Game →
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- SCREEN 4: LIVE CASINO BLACKJACK TABLE VIEW                    -->
+    <!-- ------------------------------------------------------------- -->
+    <main id="gameTableScreen" class="hidden flex-1 flex-col w-full h-full max-h-[calc(100dvh-3.5rem)] overflow-hidden justify-between relative p-2 sm:p-4">
+      
+      <!-- TOP HUD BANNER: Turn Status & Countdown Bar -->
+      <div class="w-full max-w-4xl mx-auto mb-1 sm:mb-2 shrink-0">
+        <div class="silk-surface rounded-xl px-3 py-1.5 border border-emerald-500/30 flex items-center justify-between relative overflow-hidden">
+          <div id="hudTimerProgress" class="absolute inset-y-0 left-0 bg-emerald-500/20 transition-all duration-1000 pointer-events-none" style="width: 0%;"></div>
+          
+          <div class="flex items-center gap-2 z-10">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="hudStatusText" class="text-xs sm:text-sm font-bold text-amber-200">Waiting for bets...</span>
+          </div>
+
+          <div class="flex items-center gap-3 z-10 text-[11px] font-mono text-emerald-300/80">
+            <span>Round <b id="hudRoundNum" class="text-amber-300">#1</b></span>
+            <span>Shoe: <b id="hudShoeCount" class="text-amber-300">312</b> cards</span>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- DEALER FELT PANEL (Top Central Casino Area) -->
+      <div class="w-full max-w-3xl mx-auto felt-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center justify-center relative shadow-2xl shrink-0 my-auto">
+        <!-- Dealer Info Header -->
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-xs font-serif font-black tracking-widest text-amber-300 uppercase">The House Dealer</span>
+          <span id="dealerScoreBadge" class="px-2 py-0.5 rounded-full silk-inset text-xs font-mono font-bold text-emerald-300 border border-emerald-500/30">
+            ?
+          </span>
+        </div>
+
+        <!-- Dealer Cards Container -->
+        <div id="dealerCardsRow" class="flex items-center justify-center gap-2 sm:gap-3 min-h-[90px] sm:min-h-[110px]">
+          <!-- Dealer Cards rendered dynamically -->
+        </div>
+      </div>
+
+
+      <!-- MIDDLE ZONE: OTHER SEATED PLAYERS GRID -->
+      <div class="w-full max-w-5xl mx-auto my-1 sm:my-2 flex-1 overflow-y-auto min-h-0">
+        <div id="opponentsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 items-start">
+          <!-- Seated Opponent Cards rendered dynamically -->
+        </div>
+      </div>
+
+
+      <!-- BOTTOM ZONE: LOCAL PLAYER SEAT CARD (#mySeatCard) -->
+      <div id="mySeatCard" class="w-full max-w-4xl mx-auto silk-surface rounded-2xl p-2.5 sm:p-3 border border-amber-500/30 relative shadow-2xl shrink-0">
+        
+        <div class="flex items-center justify-between mb-1.5">
+          <!-- Player Title & Net Balance -->
+          <div class="flex items-center gap-2">
+            <span id="myPlayerName" class="text-xs sm:text-sm font-bold text-amber-300">You</span>
+            <span id="myNetBalance" class="text-xs font-mono font-semibold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-500/30">
+              Rs. 0
+            </span>
+          </div>
+
+          <!-- Quick Reaction Emotes Trigger Bar -->
+          <div class="flex items-center gap-1">
+            <button class="btn-quick-emote text-xs px-1.5 py-0.5 rounded silk-inset hover:bg-emerald-900/50" data-msg="Hit me! 🃏">🃏</button>
+            <button class="btn-quick-emote text-xs px-1.5 py-0.5 rounded silk-inset hover:bg-emerald-900/50" data-msg="Stand! 🛑">🛑</button>
+            <button class="btn-quick-emote text-xs px-1.5 py-0.5 rounded silk-inset hover:bg-emerald-900/50" data-msg="Blackjack! 🎉">🎉</button>
+            <button class="btn-quick-emote text-xs px-1.5 py-0.5 rounded silk-inset hover:bg-emerald-900/50" data-msg="Dealer Bust! 💥">💥</button>
+          </div>
+        </div>
+
+        <!-- Local Hands Container (Supports Split Side-by-Side rendering) -->
+        <div id="myHandsContainer" class="flex items-start justify-center gap-4 sm:gap-6 min-h-[95px] sm:min-h-[115px]">
+          <!-- Dynamic Local Hand(s) rendered here -->
+        </div>
+      </div>
+
+
+      <!-- FIXED BOTTOM ACTION DOCK (#bottomActionBar) -->
+      <div id="bottomActionBar" class="w-full max-w-3xl mx-auto mt-2 shrink-0 z-30">
+        
+        <!-- BETTING PHASE BAR -->
+        <div id="barBettingControls" class="flex flex-wrap items-center justify-between gap-2 p-2 silk-surface rounded-xl border border-amber-500/30">
+          <div class="flex items-center gap-1.5">
+            <div id="btnBetMinus" class="btn-div px-2.5 py-1.5 rounded-lg silk-inset text-xs font-bold text-red-400 border border-red-500/30">-5</div>
+            <div id="btnBetPlus" class="btn-div px-2.5 py-1.5 rounded-lg silk-inset text-xs font-bold text-emerald-400 border border-emerald-500/30">+5</div>
+            <div id="btnBetDouble" class="btn-div px-2.5 py-1.5 rounded-lg silk-inset text-xs font-bold text-amber-300 border border-amber-500/30">2x</div>
+            <div id="btnBetMin" class="btn-div px-2.5 py-1.5 rounded-lg silk-inset text-xs font-bold text-gray-300 border border-gray-500/30">Min</div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <div class="text-right">
+              <span class="text-[10px] text-gray-400 block uppercase font-bold">Wager</span>
+              <span id="betDisplayVal" class="text-sm font-mono font-black text-amber-300">Rs. 20</span>
+            </div>
+            <div id="btnPlaceBet" class="btn-div px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-black uppercase tracking-wider border border-emerald-400/40 shadow-lg shadow-emerald-950/60">
+              Place Bet
+            </div>
+          </div>
+        </div>
+
+        <!-- PLAYER TURN ACTION BAR -->
+        <div id="barActionControls" class="hidden flex items-center justify-center gap-2 p-2 silk-surface rounded-xl border border-emerald-500/30">
+          <div id="btnHit" class="btn-div flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-sm uppercase tracking-wider border border-emerald-400/40 shadow-md">
+            Hit 🃏
+          </div>
+          <div id="btnStand" class="btn-div flex-1 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 text-white font-black text-sm uppercase tracking-wider border border-red-400/40 shadow-md">
+            Stand 🛑
+          </div>
+          <div id="btnDouble" class="btn-div flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 text-white font-black text-xs uppercase tracking-wider border border-amber-400/40 shadow-md" data-disabled="true">
+            Double 2x
+          </div>
+          <div id="btnSplit" class="btn-div flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black text-xs uppercase tracking-wider border border-purple-400/40 shadow-md" data-disabled="true">
+            Split ✂️
+          </div>
+          <div id="btnSurrender" class="btn-div px-3 py-2.5 rounded-xl silk-inset text-gray-300 font-bold text-xs uppercase tracking-wider border border-gray-500/30" data-disabled="true">
+            Fold 🏳️
+          </div>
+        </div>
+
+        <!-- INSURANCE PROMPT BAR -->
+        <div id="barInsuranceControls" class="hidden flex items-center justify-between gap-3 p-2.5 silk-surface rounded-xl border border-amber-500/50">
+          <div class="text-xs text-amber-200">
+            Dealer shows Ace! Take <b class="text-amber-400">Insurance (0.5x bet)</b>?
+          </div>
+          <div class="flex items-center gap-2">
+            <div id="btnInsuranceNo" class="btn-div px-3 py-1.5 rounded-lg silk-inset text-xs font-bold text-gray-300">No</div>
+            <div id="btnInsuranceYes" class="btn-div px-4 py-1.5 rounded-lg bg-amber-500 text-gray-950 text-xs font-black">Insure (2:1)</div>
+          </div>
+        </div>
+
+        <!-- SHOWDOWN BAR -->
+        <div id="barShowdownControls" class="hidden flex items-center justify-between gap-3 p-2.5 silk-surface rounded-xl border border-amber-500/40">
+          <div class="text-xs text-emerald-200 font-semibold">
+            Round complete! Next deal starting shortly...
+          </div>
+          <div id="btnNextRoundNow" class="btn-div hidden px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-600 text-gray-950 text-xs font-black uppercase tracking-wider">
+            Next Hand →
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ------------------------------------------------------------- -->
+  <!-- MODAL: LIVE HISAB & SETTLEMENT LEDGER                         -->
+  <!-- ------------------------------------------------------------- -->
+  <div id="hisabModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md hidden">
+    <div class="w-full max-w-lg silk-surface rounded-2xl p-5 border border-amber-500/40 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between border-b border-emerald-500/20 pb-3">
+        <h3 class="text-lg font-serif font-bold text-amber-300">Live Hisab &amp; Debt Settlement</h3>
+        <div id="btnCloseHisab" class="btn-div w-7 h-7 rounded-lg silk-inset text-gray-400 hover:text-white">✕</div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto py-4 space-y-4">
+        <!-- Player Balances Summary -->
+        <div>
+          <h4 class="text-xs font-bold uppercase text-amber-400 mb-2">Current Net Balances</h4>
+          <div id="hisabPlayerBalances" class="space-y-1.5 text-xs font-mono">
+            <!-- Dynamic Net Balances -->
+          </div>
+        </div>
+
+        <!-- Minimum Settlements Solution -->
+        <div>
+          <h4 class="text-xs font-bold uppercase text-amber-400 mb-2">Minimum Transfer Settlements</h4>
+          <div id="hisabSettlementsList" class="p-3 rounded-xl silk-inset space-y-2 text-xs">
+            <p class="text-gray-400">No settlements calculated yet. Click Settle Table to close ledger.</p>
+          </div>
+        </div>
+
+        <!-- Round History Log -->
+        <div>
+          <h4 class="text-xs font-bold uppercase text-amber-400 mb-2">Round History Log</h4>
+          <div id="hisabHistoryLog" class="p-3 rounded-xl silk-inset space-y-2 text-[11px] font-mono max-h-40 overflow-y-auto">
+            <!-- Dynamic log entries -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ------------------------------------------------------------- -->
+  <!-- MODAL: RULES & BASIC STRATEGY CHEAT SHEET                     -->
+  <!-- ------------------------------------------------------------- -->
+  <div id="rulesModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md hidden">
+    <div class="w-full max-w-2xl silk-surface rounded-2xl p-5 border border-emerald-500/40 shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between border-b border-emerald-500/20 pb-3">
+        <h3 class="text-lg font-serif font-bold text-amber-300">Blackjack Rules & Basic Strategy</h3>
+        <div id="btnCloseRules" class="btn-div w-7 h-7 rounded-lg silk-inset text-gray-400 hover:text-white">✕</div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto py-4 space-y-4 text-xs">
+        <div>
+          <h4 class="font-bold text-amber-400 text-sm mb-1">Standard Casino Rules</h4>
+          <p class="text-emerald-100/80 leading-relaxed">
+            Beat the Dealer by getting a hand value as close to 21 as possible without exceeding it (Busting). 
+            Face cards are worth 10, Aces are worth 1 or 11. Natural Blackjack pays 3:2. Dealer stands on 17.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-amber-400 text-sm mb-2">Basic Strategy Guide Sheet</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] font-mono">
+            <div class="p-2.5 rounded-xl silk-inset">
+              <span class="block font-bold text-amber-300 mb-1 border-b border-emerald-500/20 pb-1">Hard Totals</span>
+              <p>• 8 or less: Always Hit</p>
+              <p>• 9–11: Double if dealer 2–6</p>
+              <p>• 12–16: Stand if dealer 2–6, Hit if 7+</p>
+              <p>• 17+: Always Stand</p>
+            </div>
+            <div class="p-2.5 rounded-xl silk-inset">
+              <span class="block font-bold text-amber-300 mb-1 border-b border-emerald-500/20 pb-1">Soft Totals (Ace)</span>
+              <p>• Soft 13–17: Hit / Double</p>
+              <p>• Soft 18: Stand vs 2-8, Hit vs 9-A</p>
+              <p>• Soft 19+: Always Stand</p>
+            </div>
+            <div class="p-2.5 rounded-xl silk-inset">
+              <span class="block font-bold text-amber-300 mb-1 border-b border-emerald-500/20 pb-1">Pair Splits</span>
+              <p>• Always Split: Aces & 8s</p>
+              <p>• Never Split: 10s & 5s</p>
+              <p>• Split 2s,3s,7s vs dealer 2-7</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ------------------------------------------------------------- -->
+  <!-- JAVASCRIPT APPLICATION CORE ARCHITECTURE                       -->
+  <!-- ------------------------------------------------------------- -->
+  <script>
+    /* ===================================================================
+       1. SOUND EFFECTS SYNTHESIZER (Web Audio API)
+       =================================================================== */
+    class SoundFXEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      }
+
+      playCardFlip() {
+        if (this.muted || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.08);
+      }
+
+      playChipClink() {
+        if (this.muted || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1800, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      }
+
+      playTurnChime() {
+        if (this.muted || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, this.ctx.currentTime); // C5
+        osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.1); // E5
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.25);
+      }
+
+      playWinFanfare() {
+        if (this.muted || !this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
+          gain.gain.setValueAtTime(0.18, this.ctx.currentTime + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.08 + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + idx * 0.08);
+          osc.stop(this.ctx.currentTime + idx * 0.08 + 0.25);
+        });
+      }
+    }
+
+    const soundEngine = new SoundFXEngine();
+
+    /* ===================================================================
+       2. DECK & HAND EVALUATION UTILITIES
+       =================================================================== */
+    const SUITS = ['♠', '♥', '♦', '♣'];
+    const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+    function createShoe(numDecks = 6) {
+      const shoe = [];
+      for (let d = 0; d < numDecks; d++) {
+        for (const suit of SUITS) {
+          for (const rank of RANKS) {
+            let val = parseInt(rank);
+            if (['J', 'Q', 'K'].includes(rank)) val = 10;
+            if (rank === 'A') val = 11;
+            shoe.push({ rank, suit, value: val, id: Math.random().toString(36).substr(2, 9) });
+          }
+        }
+      }
+      // Fisher-Yates Shuffle
+      for (let i = shoe.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shoe[i], shoe[j]] = [shoe[j], shoe[i]];
+      }
+      return shoe;
+    }
+
+    function calculateHand(cards) {
+      if (!cards || cards.length === 0) return { total: 0, isSoft: false, isBust: false, isBJ: false };
+      let total = 0;
+      let aces = 0;
+
+      for (const card of cards) {
+        if (!card) continue;
+        if (card.rank === 'A') {
+          aces++;
+          total += 11;
+        } else {
+          total += card.value;
+        }
+      }
+
+      while (total > 21 && aces > 0) {
+        total -= 10;
+        aces--;
+      }
+
+      const isSoft = aces > 0 && total <= 21;
+      const isBust = total > 21;
+      const isBJ = cards.length === 2 && total === 21;
+
+      return { total, isSoft, isBust, isBJ };
+    }
+
+    /* ===================================================================
+       3. BASIC STRATEGY AI FOR BOTS
+       =================================================================== */
+    function getBotAction(cards, dealerUpCard, rules) {
+      const evalData = calculateHand(cards);
+      const dVal = dealerUpCard ? dealerUpCard.value : 10;
+
+      if (evalData.isBust || evalData.total >= 21) return 'STAND';
+
+      // Pair Split Check
+      if (cards.length === 2 && cards[0].rank === cards[1].rank) {
+        if (['A', '8'].includes(cards[0].rank)) return 'SPLIT';
+        if (['2', '3', '7'].includes(cards[0].rank) && dVal <= 7) return 'SPLIT';
+        if (cards[0].rank === '6' && dVal >= 3 && dVal <= 6) return 'SPLIT';
+      }
+
+      // Soft Totals
+      if (evalData.isSoft) {
+        if (evalData.total >= 19) return 'STAND';
+        if (evalData.total === 18) {
+          if (dVal >= 9 || dVal === 1) return 'HIT';
+          return 'STAND';
+        }
+        if (cards.length === 2 && dVal >= 4 && dVal <= 6) return 'DOUBLE';
+        return 'HIT';
+      }
+
+      // Hard Totals
+      if (evalData.total >= 17) return 'STAND';
+      if (evalData.total >= 13 && evalData.total <= 16) {
+        if (dVal >= 2 && dVal <= 6) return 'STAND';
+        return 'HIT';
+      }
+      if (evalData.total === 12) {
+        if (dVal >= 4 && dVal <= 6) return 'STAND';
+        return 'HIT';
+      }
+      if (evalData.total === 11 && cards.length === 2) return 'DOUBLE';
+      if (evalData.total === 10 && cards.length === 2 && dVal <= 9) return 'DOUBLE';
+      if (evalData.total === 9 && cards.length === 2 && dVal >= 3 && dVal <= 6) return 'DOUBLE';
+
+      return 'HIT';
+    }
+
+    /* ===================================================================
+       4. MINIMUM SETTLEMENT GREEDY ALGORITHM
+       =================================================================== */
+    function computeMinSettlements(playerBalances) {
+      const debtors = [];
+      const creditors = [];
+
+      for (const p of playerBalances) {
+        if (p.net < -0.01) debtors.push({ id: p.id, name: p.name, amount: -p.net });
+        else if (p.net > 0.01) creditors.push({ id: p.id, name: p.name, amount: p.net });
+      }
+
+      debtors.sort((a, b) => b.amount - a.amount);
+      creditors.sort((a, b) => b.amount - a.amount);
+
+      const transactions = [];
+      let i = 0, j = 0;
+
+      while (i < debtors.length && j < creditors.length) {
+        const debtor = debtors[i];
+        const creditor = creditors[j];
+        const pay = Math.min(debtor.amount, creditor.amount);
+
+        transactions.push({
+          from: debtor.name,
+          to: creditor.name,
+          amount: Math.round(pay)
+        });
+
+        debtor.amount -= pay;
+        creditor.amount -= pay;
+
+        if (debtor.amount < 0.01) i++;
+        if (creditor.amount < 0.01) j++;
+      }
+
+      return transactions;
+    }
+
+    /* ===================================================================
+       5. MAIN APPLICATION STATE & SANDBOX-SAFE P2P NETWORKING
+       =================================================================== */
+    const PEER_PREFIX = 'blackjack-nepal-v1-';
+    const MEMORY_STORAGE = {};
+
+    // Safe Storage Wrapper (prevents SecurityError in restricted sandboxed iframes)
+    function safeGetStorage(key) {
+      try {
+        return window.localStorage.getItem(key);
+      } catch (e) {
+        return MEMORY_STORAGE[key] || null;
+      }
+    }
+
+    function safeSetStorage(key, value) {
+      MEMORY_STORAGE[key] = String(value);
+      try {
+        window.localStorage.setItem(key, String(value));
+      } catch (e) {}
+    }
+
+    // Safe Clipboard Helper (iframe-compatible via execCommand fallback)
+    function safeCopyText(text) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // Detect if WebSocket construction is blocked by the host sandbox (e.g., Canvas preview)
+    function canUseExternalWebSockets() {
+      try {
+        if (typeof WebSocket === 'undefined') return false;
+        // Sandboxed iframes with opaque origin ('null') disallow external WebSockets in Canvas
+        if (window.origin === 'null' || window.location.protocol === 'about:') return false;
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // Suppress uncaught async SecurityError thrown internally by PeerJS inside sandboxed iframes
+    window.addEventListener('error', (event) => {
+      const msg = String(event?.message || event?.error?.message || '');
+      if (msg.includes('peerjs') || msg.includes('WebSocket') || event?.error?.name === 'SecurityError') {
+        event.preventDefault();
+        activateLocalP2PFallback('Sandbox P2P Bridge');
+      }
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      const reason = event?.reason;
+      const msg = String(reason?.message || reason || '');
+      if (msg.includes('peerjs') || msg.includes('WebSocket') || reason?.name === 'SecurityError') {
+        event.preventDefault();
+        activateLocalP2PFallback('Sandbox P2P Bridge');
+      }
+    });
+
+    const AppState = {
+      clientToken: safeGetStorage('bj_client_token') || 'usr_' + Math.random().toString(36).substr(2, 9),
+      playerName: safeGetStorage('bj_player_name') || '',
+      peer: null,
+      peerId: null,
+      p2pMode: 'peerjs', // 'peerjs' | 'local-bridge'
+      localChannel: null,
+      isHost: false,
+      roomCode: '',
+      pendingBetAmount: 20,
+      hostConn: null, // If client: connection to host
+      clientConns: {}, // If host: map of peerId -> conn
+      
+      // Table State
+      houseRules: {
+        numDecks: 6,
+        soft17: 'S17',
+        bjPay: 1.5,
+        surrender: true
+      },
+      turnTimerSec: 25,
+      maxSeats: 4,
+      baseBet: 20,
+      
+      // Live Hand & Game State
+      gameState: 'LOBBY', // LOBBY, BETTING, DEALING, INSURANCE, PLAYER_TURNS, DEALER_TURN, SHOWDOWN
+      shoe: [],
+      dealerHand: [],
+      activeTurnIndex: 0,
+      activeHandIndex: 0,
+      timerCountdown: 0,
+      timerInterval: null,
+      nextRoundTimeout: null,
+      roundNumber: 1,
+      hisabLog: [],
+      
+      // Players Array
+      players: []
+    };
+
+    safeSetStorage('bj_client_token', AppState.clientToken);
+
+    /* Helper: Show Custom Toast */
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = `px-4 py-2.5 rounded-xl text-xs font-bold shadow-xl border backdrop-blur-md pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0 flex items-center justify-between gap-3 ${
+        type === 'error' ? 'bg-red-950/90 text-red-200 border-red-500/40' :
+        type === 'win' ? 'bg-emerald-950/90 text-amber-300 border-amber-500/50' :
+        'bg-emerald-950/90 text-emerald-200 border-emerald-500/30'
+      }`;
+      toast.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()" class="text-xs opacity-60 hover:opacity-100">✕</button>`;
+      container.appendChild(toast);
+      
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    /* Haptic Feedback */
+    function triggerHaptic() {
+      try {
+        if (navigator.vibrate) navigator.vibrate(35);
+      } catch (e) {}
+    }
+
+    /* Screen Wake Lock */
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
+      } catch (e) {}
+    }
+
+    /* Activate Sandbox / Same-Browser P2P Bridge when WebSockets are blocked */
+    function activateLocalP2PFallback(label = 'Local P2P Ready') {
+      AppState.p2pMode = 'local-bridge';
+      if (!AppState.roomCode) {
+        AppState.roomCode = Math.random().toString(36).substr(2, 4).toUpperCase();
+      }
+      AppState.peerId = PEER_PREFIX + AppState.roomCode;
+
+      if (!AppState.localChannel && typeof BroadcastChannel !== 'undefined') {
+        try {
+          AppState.localChannel = new BroadcastChannel('bj_silk_p2p_bus');
+          AppState.localChannel.onmessage = (ev) => {
+            const packet = ev.data;
+            if (!packet || packet.roomCode !== AppState.roomCode) return;
+            if (AppState.isHost && packet.target === 'HOST') {
+              handleClientMessage(packet.senderId, packet.payload);
+            } else if (!AppState.isHost && packet.target === 'ALL') {
+              handleHostPacketOnClient(packet.payload);
+            }
+          };
+        } catch (e) {}
+      }
+
+      const badge = document.getElementById('peerStatusBadge');
+      if (badge) {
+        badge.innerText = label;
+        badge.className = 'font-bold text-emerald-400';
+      }
+    }
+
+    /* Initial Setup & Sandbox-Safe PeerJS Initialization */
+    function initPeerJS(customCode = null) {
+      const code = customCode || Math.random().toString(36).substr(2, 4).toUpperCase();
+      AppState.roomCode = code;
+      const fullId = PEER_PREFIX + code;
+      const badge = document.getElementById('peerStatusBadge');
+
+      if (!canUseExternalWebSockets() || typeof Peer === 'undefined') {
+        activateLocalP2PFallback('Sandbox P2P Ready');
+        return;
+      }
+
+      if (badge) badge.innerText = 'Connecting...';
+
+      try {
+        AppState.peer = new Peer(fullId, { debug: 0 });
+
+        AppState.peer.on('open', (id) => {
+          AppState.p2pMode = 'peerjs';
+          AppState.peerId = id;
+          AppState.roomCode = code;
+          if (badge) {
+            badge.innerText = 'Connected (WebRTC)';
+            badge.className = 'font-bold text-emerald-400';
+          }
+        });
+
+        AppState.peer.on('connection', (conn) => {
+          if (AppState.isHost) {
+            handleIncomingClientConnection(conn);
+          }
+        });
+
+        AppState.peer.on('error', (err) => {
+          if (err && err.type === 'unavailable-id') {
+            initPeerJS();
+            return;
+          }
+          activateLocalP2PFallback('Local P2P Ready');
+        });
+      } catch (err) {
+        // Catches synchronous SecurityError when WebSockets are blocked in sandboxed iframes
+        activateLocalP2PFallback('Sandbox P2P Ready');
+      }
+    }
+
+    /* Host Handles New Incoming Client Connection */
+    function handleIncomingClientConnection(conn) {
+      conn.on('open', () => {
+        AppState.clientConns[conn.peer] = conn;
+      });
+
+      conn.on('data', (data) => {
+        handleClientMessage(conn.peer, data);
+      });
+
+      conn.on('close', () => {
+        delete AppState.clientConns[conn.peer];
+        const p = AppState.players.find(x => x.peerId === conn.peer);
+        if (p) {
+          p.isOnline = false;
+          broadcastGameState();
+        }
+      });
+    }
+
+    /* Host Processes Client Messages */
+    function handleClientMessage(peerId, msg) {
+      if (!AppState.isHost || !msg) return;
+
+      switch(msg.type) {
+        case 'JOIN_REQUEST':
+          if (AppState.players.length >= AppState.maxSeats) {
+            sendDirectToPeer(peerId, { type: 'JOIN_ERROR', reason: 'Table is full' });
+            return;
+          }
+          const existing = AppState.players.find(p => p.token === msg.token);
+          if (existing) {
+            existing.peerId = peerId;
+            existing.isOnline = true;
+            existing.name = msg.name;
+          } else {
+            AppState.players.push({
+              id: 'p_' + Math.random().toString(36).substr(2, 7),
+              token: msg.token,
+              peerId: peerId,
+              name: msg.name || 'Player ' + (AppState.players.length + 1),
+              isBot: false,
+              isOnline: true,
+              netBalance: 0,
+              bet: AppState.baseBet,
+              betPlaced: false,
+              insuranceBet: 0,
+              hands: [{ cards: [], status: 'BETTING' }],
+              currentHandIndex: 0
+            });
+          }
+          broadcastGameState();
+          break;
+
+        case 'UPDATE_BET':
+          const pUpd = AppState.players.find(p => p.peerId === peerId || p.token === msg.token);
+          if (pUpd && AppState.gameState === 'BETTING') {
+            pUpd.bet = Math.max(5, msg.amount);
+            soundEngine.playChipClink();
+            broadcastGameState();
+          }
+          break;
+
+        case 'PLACE_BET':
+          const pBet = AppState.players.find(p => p.peerId === peerId || p.token === msg.token);
+          if (pBet && AppState.gameState === 'BETTING') {
+            pBet.bet = Math.max(5, msg.amount);
+            pBet.betPlaced = true;
+            soundEngine.playChipClink();
+            checkAllBetsPlaced();
+            broadcastGameState();
+          }
+          break;
+
+        case 'PLAYER_ACTION':
+          const pAct = AppState.players.find(p => p.peerId === peerId || p.token === msg.token);
+          if (pAct && AppState.gameState === 'PLAYER_TURNS') {
+            const activePlayer = AppState.players[AppState.activeTurnIndex];
+            if (activePlayer && activePlayer.id === pAct.id) {
+              executePlayerAction(pAct, msg.action);
+            }
+          }
+          break;
+
+        case 'INSURANCE_DECISION':
+          const pIns = AppState.players.find(p => p.peerId === peerId || p.token === msg.token);
+          if (pIns && AppState.gameState === 'INSURANCE') {
+            if (msg.decision) {
+              pIns.insuranceBet = Math.round(pIns.bet * 0.5);
+            }
+            pIns.insuranceDecided = true;
+            checkAllInsuranceDecided();
+            broadcastGameState();
+          }
+          break;
+
+        case 'NEXT_ROUND_NOW':
+          if (AppState.gameState === 'SHOWDOWN') {
+            clearTimeout(AppState.nextRoundTimeout);
+            startBettingPhase();
+          }
+          break;
+
+        case 'QUICK_CHAT':
+          broadcastToAll({ type: 'QUICK_CHAT_EVENT', senderName: msg.senderName, text: msg.text });
+          break;
+      }
+    }
+
+    function sendDirectToPeer(peerId, payload) {
+      if (AppState.clientConns[peerId]) {
+        try { AppState.clientConns[peerId].send(payload); } catch (e) {}
+      }
+      if (AppState.localChannel) {
+        try {
+          AppState.localChannel.postMessage({
+            roomCode: AppState.roomCode,
+            target: 'ALL',
+            payload
+          });
+        } catch (e) {}
+      }
+    }
+
+    /* Client Sends Action to Host */
+    function sendToHost(data) {
+      if (AppState.isHost) {
+        handleClientMessage('HOST', data);
+        return;
+      }
+      if (AppState.hostConn && AppState.hostConn.open) {
+        try { AppState.hostConn.send(data); } catch (e) {}
+      } else if (AppState.localChannel) {
+        try {
+          AppState.localChannel.postMessage({
+            roomCode: AppState.roomCode,
+            target: 'HOST',
+            senderId: AppState.clientToken,
+            payload: data
+          });
+        } catch (e) {}
+      }
+    }
+
+    /* Broadcast Game State from Host to all Clients (With Zero-Leak Card Security) */
+    function broadcastGameState() {
+      if (!AppState.isHost) return;
+
+      let sanitizedDealerCards = AppState.dealerHand;
+      if (['BETTING', 'DEALING', 'INSURANCE', 'PLAYER_TURNS'].includes(AppState.gameState) && AppState.dealerHand.length >= 2) {
+        sanitizedDealerCards = [AppState.dealerHand[0], { rank: '?', suit: '?', value: 0, hidden: true }];
+      }
+
+      const statePayload = {
+        type: 'STATE_UPDATE',
+        gameState: AppState.gameState,
+        houseRules: AppState.houseRules,
+        turnTimerSec: AppState.turnTimerSec,
+        maxSeats: AppState.maxSeats,
+        baseBet: AppState.baseBet,
+        roomCode: AppState.roomCode,
+        shoeCount: AppState.shoe.length,
+        dealerHand: sanitizedDealerCards,
+        activeTurnIndex: AppState.activeTurnIndex,
+        activeHandIndex: AppState.activeHandIndex,
+        roundNumber: AppState.roundNumber,
+        hisabLog: AppState.hisabLog,
+        players: AppState.players.map(p => ({
+          id: p.id,
+          token: p.token,
+          name: p.name,
+          isBot: p.isBot,
+          isOnline: p.isOnline,
+          netBalance: p.netBalance,
+          bet: p.bet,
+          betPlaced: p.betPlaced,
+          insuranceBet: p.insuranceBet,
+          hands: p.hands,
+          currentHandIndex: p.currentHandIndex
+        }))
+      };
+
+      broadcastToAll(statePayload);
+      renderUI(statePayload);
+    }
+
+    function broadcastToAll(payload) {
+      for (const connId in AppState.clientConns) {
+        try { AppState.clientConns[connId]?.send(payload); } catch (e) {}
+      }
+      if (AppState.localChannel) {
+        try {
+          AppState.localChannel.postMessage({
+            roomCode: AppState.roomCode,
+            target: 'ALL',
+            payload
+          });
+        } catch (e) {}
+      }
+    }
+
+
+    /* ===================================================================
+       6. BLACKJACK ROUND LOGIC & ENGINE (HOST ONLY)
+       =================================================================== */
+    function startBettingPhase() {
+      if (!AppState.isHost) return;
+      clearTimeout(AppState.nextRoundTimeout);
+
+      if (AppState.shoe.length < 52) {
+        AppState.shoe = createShoe(AppState.houseRules.numDecks);
+        showToast('Shoe reshuffled', 'info');
+      }
+
+      AppState.gameState = 'BETTING';
+      AppState.dealerHand = [];
+      
+      AppState.players.forEach(p => {
+        p.betPlaced = p.isBot;
+        p.insuranceBet = 0;
+        p.insuranceDecided = false;
+        p.hands = [{ cards: [], status: 'BETTING' }];
+        p.currentHandIndex = 0;
+      });
+
+      startTurnTimer(AppState.turnTimerSec, () => {
+        AppState.players.forEach(p => { p.betPlaced = true; });
+        dealInitialCards();
+      });
+
+      broadcastGameState();
+    }
+
+    function checkAllBetsPlaced() {
+      if (!AppState.isHost) return;
+      const allDone = AppState.players.every(p => p.betPlaced);
+      if (allDone) {
+        clearInterval(AppState.timerInterval);
+        dealInitialCards();
+      }
+    }
+
+    function dealInitialCards() {
+      if (!AppState.isHost) return;
+      AppState.gameState = 'DEALING';
+      soundEngine.playCardFlip();
+
+      for (let i = 0; i < 2; i++) {
+        AppState.players.forEach(p => {
+          if (p.hands[0]) {
+            p.hands[0].cards.push(AppState.shoe.pop());
+          }
+        });
+        AppState.dealerHand.push(AppState.shoe.pop());
+      }
+
+      AppState.players.forEach(p => {
+        const evalHand = calculateHand(p.hands[0].cards);
+        if (evalHand.isBJ) {
+          p.hands[0].status = 'BLACKJACK';
+        } else {
+          p.hands[0].status = 'PLAYING';
+        }
+      });
+
+      const dealerUp = AppState.dealerHand[0];
+      if (dealerUp.rank === 'A') {
+        AppState.gameState = 'INSURANCE';
+        broadcastGameState();
+        startTurnTimer(12, () => {
+          proceedAfterInsurance();
+        });
+        return;
+      }
+
+      if (['10', 'J', 'Q', 'K'].includes(dealerUp.rank)) {
+        const dealerEval = calculateHand(AppState.dealerHand);
+        if (dealerEval.isBJ) {
+          showToast('Dealer has Natural Blackjack!', 'error');
+          finishRoundShowdown();
+          return;
+        }
+      }
+
+      startPlayerTurns();
+    }
+
+    function checkAllInsuranceDecided() {
+      if (!AppState.isHost) return;
+      const allDecided = AppState.players.every(p => p.isBot || p.insuranceDecided);
+      if (allDecided) {
+        clearInterval(AppState.timerInterval);
+        proceedAfterInsurance();
+      }
+    }
+
+    function proceedAfterInsurance() {
+      const dealerEval = calculateHand(AppState.dealerHand);
+      if (dealerEval.isBJ) {
+        showToast('Dealer has Blackjack!', 'error');
+        finishRoundShowdown();
+      } else {
+        startPlayerTurns();
+      }
+    }
+
+    function startPlayerTurns() {
+      if (!AppState.isHost) return;
+      AppState.gameState = 'PLAYER_TURNS';
+      AppState.activeTurnIndex = 0;
+      AppState.activeHandIndex = 0;
+
+      advanceToNextPlayerTurn();
+    }
+
+    function advanceToNextPlayerTurn() {
+      if (AppState.activeTurnIndex >= AppState.players.length) {
+        executeDealerTurn();
+        return;
+      }
+
+      const p = AppState.players[AppState.activeTurnIndex];
+      const currentHand = p.hands[AppState.activeHandIndex];
+
+      if (!currentHand || currentHand.status === 'BLACKJACK' || calculateHand(currentHand.cards).total >= 21) {
+        if (AppState.activeHandIndex < p.hands.length - 1) {
+          AppState.activeHandIndex++;
+          advanceToNextPlayerTurn();
+        } else {
+          AppState.activeHandIndex = 0;
+          AppState.activeTurnIndex++;
+          advanceToNextPlayerTurn();
+        }
+        return;
+      }
+
+      if (p.isBot) {
+        broadcastGameState();
+        setTimeout(() => {
+          const action = getBotAction(currentHand.cards, AppState.dealerHand[0], AppState.houseRules);
+          executePlayerAction(p, action);
+        }, 800);
+        return;
+      }
+
+      soundEngine.playTurnChime();
+      startTurnTimer(AppState.turnTimerSec, () => {
+        executePlayerAction(p, 'STAND');
+      });
+
+      broadcastGameState();
+    }
+
+    function executePlayerAction(player, action) {
+      if (!AppState.isHost) return;
+      clearInterval(AppState.timerInterval);
+
+      const hand = player.hands[player.currentHandIndex || AppState.activeHandIndex];
+
+      switch(action) {
+        case 'HIT':
+          soundEngine.playCardFlip();
+          hand.cards.push(AppState.shoe.pop());
+          const hEval = calculateHand(hand.cards);
+          if (hEval.isBust) {
+            hand.status = 'BUST';
+            advanceHandOrPlayer(player);
+          } else if (hEval.total === 21) {
+            hand.status = '21';
+            advanceHandOrPlayer(player);
+          } else {
+            advanceToNextPlayerTurn();
+          }
+          break;
+
+        case 'STAND':
+          hand.status = hand.status || 'STAND';
+          advanceHandOrPlayer(player);
+          break;
+
+        case 'DOUBLE':
+          soundEngine.playCardFlip();
+          soundEngine.playChipClink();
+          player.bet *= 2;
+          hand.cards.push(AppState.shoe.pop());
+          const dEval = calculateHand(hand.cards);
+          hand.status = dEval.isBust ? 'BUST' : 'STAND';
+          advanceHandOrPlayer(player);
+          break;
+
+        case 'SPLIT':
+          if (hand.cards.length === 2) {
+            soundEngine.playChipClink();
+            const card2 = hand.cards.pop();
+            const hand2 = { cards: [card2], status: 'PLAYING' };
+            player.hands.push(hand2);
+            hand.cards.push(AppState.shoe.pop());
+            hand2.cards.push(AppState.shoe.pop());
+            advanceToNextPlayerTurn();
+          }
+          break;
+
+        case 'SURRENDER':
+          hand.status = 'SURRENDER';
+          advanceHandOrPlayer(player);
+          break;
+      }
+
+      broadcastGameState();
+    }
+
+    function advanceHandOrPlayer(player) {
+      if (AppState.activeHandIndex < player.hands.length - 1) {
+        AppState.activeHandIndex++;
+      } else {
+        AppState.activeHandIndex = 0;
+        AppState.activeTurnIndex++;
+      }
+      advanceToNextPlayerTurn();
+    }
+
+    /* Dealer Turn Step-by-Step AI Draw */
+    function executeDealerTurn() {
+      if (!AppState.isHost) return;
+      AppState.gameState = 'DEALER_TURN';
+      broadcastGameState();
+
+      const runStep = () => {
+        let dEval = calculateHand(AppState.dealerHand);
+        const shouldHit = AppState.houseRules.soft17 === 'H17' ?
+          (dEval.total < 17 || (dEval.total === 17 && dEval.isSoft)) :
+          (dEval.total < 17);
+
+        if (shouldHit) {
+          soundEngine.playCardFlip();
+          AppState.dealerHand.push(AppState.shoe.pop());
+          broadcastGameState();
+          setTimeout(runStep, 750);
+        } else {
+          finishRoundShowdown();
+        }
+      };
+
+      setTimeout(runStep, 650);
+    }
+
+    /* Showdown Calculation & Settlement */
+    function finishRoundShowdown() {
+      if (!AppState.isHost) return;
+      AppState.gameState = 'SHOWDOWN';
+      
+      const dealerEval = calculateHand(AppState.dealerHand);
+      let logEntry = `Round ${AppState.roundNumber}: `;
+
+      AppState.players.forEach(p => {
+        let pRoundNet = 0;
+
+        if (p.insuranceBet > 0) {
+          if (dealerEval.isBJ) {
+            pRoundNet += p.insuranceBet * 2;
+          } else {
+            pRoundNet -= p.insuranceBet;
+          }
+        }
+
+        p.hands.forEach(h => {
+          const hEval = calculateHand(h.cards);
+          
+          if (h.status === 'SURRENDER') {
+            const loss = Math.round(p.bet * 0.5);
+            pRoundNet -= loss;
+            h.status = 'SURRENDER (-' + loss + ')';
+          }
+          else if (hEval.isBust) {
+            pRoundNet -= p.bet;
+            h.status = 'BUST (-' + p.bet + ')';
+          }
+          else if (hEval.isBJ) {
+            if (dealerEval.isBJ) {
+              h.status = 'PUSH (0)';
+            } else {
+              const winAmt = Math.round(p.bet * AppState.houseRules.bjPay);
+              pRoundNet += winAmt;
+              h.status = 'BLACKJACK (+' + winAmt + ')';
+            }
+          }
+          else if (dealerEval.isBJ) {
+            pRoundNet -= p.bet;
+            h.status = 'LOST (-' + p.bet + ')';
+          }
+          else if (dealerEval.isBust) {
+            pRoundNet += p.bet;
+            h.status = 'WON (+' + p.bet + ')';
+          }
+          else if (hEval.total > dealerEval.total) {
+            pRoundNet += p.bet;
+            h.status = 'WON (+' + p.bet + ')';
+          }
+          else if (hEval.total < dealerEval.total) {
+            pRoundNet -= p.bet;
+            h.status = 'LOST (-' + p.bet + ')';
+          }
+          else {
+            h.status = 'PUSH (0)';
+          }
+        });
+
+        p.netBalance += pRoundNet;
+        logEntry += `${p.name}: ${pRoundNet >= 0 ? '+' : ''}${pRoundNet} | `;
+      });
+
+      AppState.hisabLog.unshift(logEntry);
+      AppState.roundNumber++;
+      
+      soundEngine.playWinFanfare();
+      broadcastGameState();
+
+      clearTimeout(AppState.nextRoundTimeout);
+      AppState.nextRoundTimeout = setTimeout(() => {
+        if (AppState.gameState === 'SHOWDOWN') {
+          startBettingPhase();
+        }
+      }, 6500);
+    }
+
+    function startTurnTimer(seconds, onExpire) {
+      clearInterval(AppState.timerInterval);
+      if (seconds <= 0) return;
+
+      AppState.timerCountdown = seconds;
+      
+      AppState.timerInterval = setInterval(() => {
+        AppState.timerCountdown--;
+        renderTimerHUD(AppState.timerCountdown, seconds);
+        if (AppState.timerCountdown <= 0) {
+          clearInterval(AppState.timerInterval);
+          if (onExpire) onExpire();
+        }
+      }, 1000);
+
+      renderTimerHUD(seconds, seconds);
+    }
+
+    function renderTimerHUD(current, total) {
+      const pct = Math.max(0, Math.min(100, (current / total) * 100));
+      const bar = document.getElementById('hudTimerProgress');
+      if (bar) bar.style.width = pct + '%';
+    }
+
+
+    /* ===================================================================
+       7. UI RENDER ENGINE
+       =================================================================== */
+    function renderUI(state) {
+      const hostSetup = document.getElementById('hostSetupScreen');
+      const visitorJoin = document.getElementById('visitorJoinScreen');
+      const lobby = document.getElementById('lobbyScreen');
+      const gameTable = document.getElementById('gameTableScreen');
+      const body = document.body;
+
+      if (state.gameState === 'LOBBY') {
+        body.classList.remove('is-in-game');
+        hostSetup.classList.add('hidden');
+        visitorJoin.classList.add('hidden');
+        lobby.classList.remove('hidden');
+        gameTable.classList.add('hidden');
+
+        document.getElementById('headerRoomPill').classList.remove('hidden');
+        document.getElementById('headerRoomCode').innerText = state.roomCode;
+
+        renderLobbyUI(state);
+      } else {
+        body.classList.add('is-in-game');
+        hostSetup.classList.add('hidden');
+        visitorJoin.classList.add('hidden');
+        lobby.classList.add('hidden');
+        gameTable.classList.remove('hidden');
+
+        document.getElementById('headerRoomPill').classList.remove('hidden');
+        document.getElementById('headerRoomCode').innerText = state.roomCode;
+        document.getElementById('btnHisab').classList.remove('hidden');
+        document.getElementById('btnLeave').classList.remove('hidden');
+        document.getElementById('hisabBadge').innerText = String((state.hisabLog || []).length);
+        if (AppState.isHost) document.getElementById('btnHostSettle').classList.remove('hidden');
+
+        renderLiveTableUI(state);
+      }
+    }
+
+    function renderLobbyUI(state) {
+      document.getElementById('lobbyCodeDisplay').innerText = state.roomCode;
+      document.getElementById('lobbyPlayerCount').innerText = state.players.length;
+      document.getElementById('lobbyMaxSeats').innerText = state.maxSeats;
+
+      document.getElementById('lobbyRuleDecks').innerText = `${state.houseRules.numDecks} Decks`;
+      document.getElementById('lobbyRuleSoft17').innerText = state.houseRules.soft17 === 'S17' ? 'Stands S17' : 'Hits S17';
+      document.getElementById('lobbyRuleBJ').innerText = `BJ Pays ${state.houseRules.bjPay === 1.5 ? '3:2' : '6:5'}`;
+      document.getElementById('lobbyRuleSurrender').innerText = state.houseRules.surrender ? 'Surrender On' : 'Surrender Off';
+
+      const playerList = document.getElementById('lobbyPlayerList');
+      playerList.innerHTML = '';
+
+      state.players.forEach((p) => {
+        const pCard = document.createElement('div');
+        pCard.className = 'flex items-center justify-between p-3 rounded-xl silk-surface border border-emerald-500/20';
+        pCard.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-emerald-600 flex items-center justify-center font-bold text-xs">
+              ${p.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <span class="text-xs font-bold text-amber-200 block">${p.name} ${p.token === AppState.clientToken ? '(You)' : ''}</span>
+              <span class="text-[10px] text-emerald-400 font-mono">${p.isBot ? 'BOT AI' : (p.isOnline ? 'Online' : 'Offline')}</span>
+            </div>
+          </div>
+          ${AppState.isHost && p.token !== AppState.clientToken ? `<div class="btn-kick btn-div px-2 py-1 text-[10px] bg-red-950/80 text-red-300 rounded hover:bg-red-900 border border-red-500/30" data-id="${p.id}">Kick</div>` : ''}
+        `;
+        playerList.appendChild(pCard);
+      });
+
+      const btnStart = document.getElementById('btnStartGameLobby');
+      const btnAddBot = document.getElementById('btnAddBotLobby');
+      if (AppState.isHost) {
+        btnStart.classList.remove('hidden');
+        btnAddBot.classList.remove('hidden');
+      } else {
+        btnStart.classList.add('hidden');
+        btnAddBot.classList.add('hidden');
+      }
+
+      const qrBox = document.getElementById('lobbyQrContainer');
+      if (qrBox && qrBox.dataset.code !== state.roomCode) {
+        qrBox.dataset.code = state.roomCode;
+        qrBox.innerHTML = '';
+        if (typeof QRCode !== 'undefined') {
+          try {
+            const joinUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomCode}`;
+            new QRCode(qrBox, {
+              text: joinUrl,
+              width: 90,
+              height: 90,
+              colorDark: '#020f0a',
+              colorLight: '#ffffff'
+            });
+          } catch (e) {
+            qrBox.innerHTML = `<span class="text-xs font-mono font-black text-black px-2">${state.roomCode}</span>`;
+          }
+        }
+      }
+    }
+
+    function renderLiveTableUI(state) {
+      document.getElementById('hudRoundNum').innerText = `#${state.roundNumber}`;
+      document.getElementById('hudShoeCount').innerText = state.shoeCount;
+
+      const hudStatus = document.getElementById('hudStatusText');
+      if (state.gameState === 'BETTING') hudStatus.innerText = 'Place your wagers...';
+      else if (state.gameState === 'DEALING') hudStatus.innerText = 'Dealing initial cards...';
+      else if (state.gameState === 'INSURANCE') hudStatus.innerText = 'Insurance decisions...';
+      else if (state.gameState === 'PLAYER_TURNS') {
+        const activeP = state.players[state.activeTurnIndex];
+        hudStatus.innerText = activeP ? `${activeP.name}'s turn...` : 'Player turns...';
+      }
+      else if (state.gameState === 'DEALER_TURN') hudStatus.innerText = 'Dealer drawing hand...';
+      else if (state.gameState === 'SHOWDOWN') hudStatus.innerText = 'Round Showdown & Settlements';
+
+      renderDealerPanel(state.dealerHand, state.gameState);
+
+      const oppGrid = document.getElementById('opponentsGrid');
+      oppGrid.innerHTML = '';
+
+      state.players.forEach(p => {
+        if (p.token !== AppState.clientToken) {
+          oppGrid.appendChild(createPlayerSeatElement(p, state));
+        } else {
+          renderLocalPlayerSeat(p, state);
+        }
+      });
+
+      renderActionDock(state);
+    }
+
+    function renderDealerPanel(cards, gameState) {
+      const container = document.getElementById('dealerCardsRow');
+      const badge = document.getElementById('dealerScoreBadge');
+      container.innerHTML = '';
+
+      if (!cards || cards.length === 0) {
+        container.innerHTML = '<span class="text-xs text-emerald-300/60 font-mono">Waiting for deal...</span>';
+        badge.innerText = '?';
+        return;
+      }
+
+      cards.forEach(card => {
+        container.appendChild(createCardHTML(card));
+      });
+
+      const dEval = calculateHand(cards.filter(c => !c.hidden));
+      if (cards.some(c => c.hidden)) {
+        badge.innerText = `Upcard: ${dEval.total}`;
+      } else {
+        badge.innerText = dEval.isBust ? `BUST (${dEval.total})` : (dEval.isSoft ? `Soft ${dEval.total}` : `${dEval.total}`);
+      }
+    }
+
+    function createPlayerSeatElement(player, state) {
+      const el = document.createElement('div');
+      const isActive = state.gameState === 'PLAYER_TURNS' && state.players[state.activeTurnIndex]?.id === player.id;
+
+      el.className = `silk-surface rounded-xl p-2.5 border transition-all duration-300 ${
+        isActive ? 'border-amber-400 ring-2 ring-amber-400/30 bg-emerald-950/80 shadow-lg shadow-amber-500/20' : 'border-emerald-500/20'
+      }`;
+
+      const primaryHand = player.hands[0] || { cards: [], status: 'BETTING' };
+
+      el.innerHTML = `
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-1.5 overflow-hidden">
+            <span class="text-xs font-bold text-amber-200 truncate max-w-[70px]">${player.name}</span>
+            ${player.isBot ? '<span class="text-[9px] bg-amber-500/20 text-amber-300 px-1 rounded font-mono">BOT</span>' : ''}
+          </div>
+          <span class="text-[10px] font-mono text-emerald-300 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-500/30">
+            Rs.${player.netBalance}
+          </span>
+        </div>
+
+        <div class="flex items-center justify-between text-[10px] text-gray-400 mb-1">
+          <span>Bet: <b class="text-amber-300 font-mono">Rs.${player.bet}</b></span>
+          <span class="font-bold uppercase ${primaryHand.status.includes('WON') || primaryHand.status.includes('BLACKJACK') ? 'text-emerald-400' : (primaryHand.status.includes('BUST') ? 'text-red-400' : 'text-amber-300')}">
+            ${primaryHand.status}
+          </span>
+        </div>
+
+        <div class="flex items-center justify-center gap-1 min-h-[50px]">
+          ${primaryHand.cards.map(c => createCardHTML(c, true).outerHTML).join('')}
+        </div>
+      `;
+
+      return el;
+    }
+
+    function renderLocalPlayerSeat(player, state) {
+      document.getElementById('myPlayerName').innerText = `${player.name} (You)`;
+      document.getElementById('myNetBalance').innerText = `Rs. ${player.netBalance}`;
+
+      const container = document.getElementById('myHandsContainer');
+      container.innerHTML = '';
+
+      if (!player.hands || player.hands.length === 0) {
+        container.innerHTML = '<span class="text-xs text-emerald-300/60 font-mono">Waiting for hand...</span>';
+        return;
+      }
+
+      player.hands.forEach((hand, hIdx) => {
+        const handBox = document.createElement('div');
+        const isCurrentActiveHand = state.gameState === 'PLAYER_TURNS' && 
+                                    state.players[state.activeTurnIndex]?.token === AppState.clientToken &&
+                                    state.activeHandIndex === hIdx;
+        
+        const hEval = calculateHand(hand.cards);
+
+        handBox.className = `flex flex-col items-center p-2 rounded-xl transition-all ${
+          isCurrentActiveHand ? 'bg-emerald-950/70 border border-amber-400/60 shadow-lg shadow-amber-500/20' : ''
+        }`;
+
+        handBox.innerHTML = `
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="px-2 py-0.5 rounded-full silk-inset text-xs font-mono font-bold text-amber-300 border border-emerald-500/30">
+              ${hEval.isBust ? 'BUST' : (hEval.isBJ ? '21 • BLACKJACK' : (hEval.isSoft ? `Soft ${hEval.total}` : `${hEval.total}`))}
+            </span>
+            <span class="text-[10px] font-bold text-emerald-400 uppercase">${hand.status}</span>
+          </div>
+
+          <div class="flex items-center justify-center gap-1.5 sm:gap-2">
+            ${hand.cards.map(c => createCardHTML(c).outerHTML).join('')}
+          </div>
+        `;
+
+        container.appendChild(handBox);
+      });
+    }
+
+    function renderActionDock(state) {
+      const barBetting = document.getElementById('barBettingControls');
+      const barActions = document.getElementById('barActionControls');
+      const barInsurance = document.getElementById('barInsuranceControls');
+      const barShowdown = document.getElementById('barShowdownControls');
+
+      barBetting.classList.add('hidden');
+      barActions.classList.add('hidden');
+      barInsurance.classList.add('hidden');
+      barShowdown.classList.add('hidden');
+
+      const localPlayer = state.players.find(p => p.token === AppState.clientToken);
+      if (!localPlayer) return;
+
+      if (state.gameState === 'BETTING') {
+        barBetting.classList.remove('hidden');
+        document.getElementById('betDisplayVal').innerText = `Rs. ${localPlayer.bet}`;
+      } else if (state.gameState === 'SHOWDOWN') {
+        barShowdown.classList.remove('hidden');
+        const nextBtn = document.getElementById('btnNextRoundNow');
+        if (nextBtn) nextBtn.classList.toggle('hidden', !AppState.isHost);
+      } else if (state.gameState === 'INSURANCE' && !localPlayer.insuranceDecided) {
+        barInsurance.classList.remove('hidden');
+      } else if (state.gameState === 'PLAYER_TURNS') {
+        const activeP = state.players[state.activeTurnIndex];
+        if (activeP && activeP.token === AppState.clientToken) {
+          barActions.classList.remove('hidden');
+
+          const currentHand = localPlayer.hands[state.activeHandIndex] || localPlayer.hands[0];
+          const cCards = currentHand.cards;
+
+          const btnDouble = document.getElementById('btnDouble');
+          if (cCards && cCards.length === 2 && localPlayer.hands.length === 1) {
+            btnDouble.removeAttribute('data-disabled');
+          } else {
+            btnDouble.setAttribute('data-disabled', 'true');
+          }
+
+          const btnSplit = document.getElementById('btnSplit');
+          if (cCards && cCards.length === 2 && localPlayer.hands.length === 1 && (cCards[0].rank === cCards[1].rank || cCards[0].value === cCards[1].value)) {
+            btnSplit.removeAttribute('data-disabled');
+          } else {
+            btnSplit.setAttribute('data-disabled', 'true');
+          }
+
+          const btnSurrender = document.getElementById('btnSurrender');
+          if (cCards && cCards.length === 2 && localPlayer.hands.length === 1 && state.houseRules.surrender) {
+            btnSurrender.removeAttribute('data-disabled');
+          } else {
+            btnSurrender.setAttribute('data-disabled', 'true');
+          }
+        }
+      }
+    }
+
+    function createCardHTML(card, mini = false) {
+      const cardDiv = document.createElement('div');
+      
+      if (!card || card.hidden) {
+        cardDiv.className = `poker-card back ${mini ? 'scale-75 origin-top' : 'animate-card-flip'}`;
+        return cardDiv;
+      }
+
+      const isRed = ['♥', '♦'].includes(card.suit);
+      cardDiv.className = `poker-card ${isRed ? 'red-suit' : ''} ${mini ? 'scale-75 origin-top' : 'animate-card-flip'}`;
+
+      cardDiv.innerHTML = `
+        <div class="absolute top-1 left-1.5 text-[11px] sm:text-xs leading-none font-bold">
+          ${card.rank}<br><span class="text-xs sm:text-sm">${card.suit}</span>
+        </div>
+        <div class="absolute inset-0 flex items-center justify-center text-lg sm:text-2xl opacity-85">
+          ${card.suit}
+        </div>
+        <div class="absolute bottom-1 right-1.5 text-[11px] sm:text-xs leading-none font-bold transform rotate-180">
+          ${card.rank}<br><span class="text-xs sm:text-sm">${card.suit}</span>
+        </div>
+      `;
+
+      return cardDiv;
+    }
+
+    function handleHostPacketOnClient(data) {
+      if (!data) return;
+      if (data.type === 'STATE_UPDATE') {
+        AppState.gameState = data.gameState;
+        AppState.houseRules = data.houseRules;
+        AppState.roomCode = data.roomCode;
+        AppState.players = data.players;
+        AppState.hisabLog = data.hisabLog;
+        renderUI(data);
+      } else if (data.type === 'JOIN_ERROR') {
+        showToast(data.reason, 'error');
+      } else if (data.type === 'QUICK_CHAT_EVENT') {
+        showToast(`${data.senderName}: ${data.text}`, 'info');
+      }
+    }
+
+
+    /* ===================================================================
+       8. DOM EVENT LISTENERS & INITIALIZATION
+       =================================================================== */
+    window.addEventListener('DOMContentLoaded', () => {
+      soundEngine.init();
+      requestWakeLock();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomParam = urlParams.get('room');
+
+      if (roomParam && roomParam.length === 4) {
+        document.getElementById('hostSetupScreen').classList.add('hidden');
+        document.getElementById('visitorJoinScreen').classList.remove('hidden');
+        document.getElementById('visitorRoomCodeBadge').innerText = roomParam.toUpperCase();
+      }
+
+      initPeerJS();
+
+      if (AppState.playerName) {
+        document.getElementById('hostNameInput').value = AppState.playerName;
+        document.getElementById('joinNameInput').value = AppState.playerName;
+        document.getElementById('visitorNameInput').value = AppState.playerName;
+      }
+
+      document.querySelectorAll('.preset-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const val = parseInt(chip.dataset.val, 10);
+          document.getElementById('hostBaseBetInput').value = val;
+          soundEngine.playChipClink();
+        });
+      });
+
+      document.getElementById('btnToggleHouseRules').addEventListener('click', () => {
+        const content = document.getElementById('houseRulesContent');
+        const arrow = document.getElementById('houseRulesArrow');
+        content.classList.toggle('hidden');
+        arrow.classList.toggle('rotate-180');
+      });
+
+      document.getElementById('btnCreateHostTable').addEventListener('click', () => {
+        const name = document.getElementById('hostNameInput').value.trim() || 'John Doe';
+        AppState.playerName = name;
+        safeSetStorage('bj_player_name', name);
+
+        AppState.isHost = true;
+        AppState.maxSeats = parseInt(document.getElementById('hostSeatsSelect').value, 10) || 4;
+        AppState.baseBet = Math.max(5, parseInt(document.getElementById('hostBaseBetInput').value, 10) || 20);
+        AppState.turnTimerSec = parseInt(document.getElementById('hostTimerSelect').value, 10) || 0;
+
+        AppState.houseRules = {
+          numDecks: parseInt(document.getElementById('ruleDecks').value, 10) || 6,
+          soft17: document.getElementById('ruleSoft17').value,
+          bjPay: parseFloat(document.getElementById('ruleBJPay').value) || 1.5,
+          surrender: document.getElementById('ruleSurrender').value === 'true'
+        };
+
+        AppState.shoe = createShoe(AppState.houseRules.numDecks);
+
+        AppState.players = [{
+          id: 'p_host',
+          token: AppState.clientToken,
+          peerId: AppState.peerId,
+          name: name,
+          isBot: false,
+          isOnline: true,
+          netBalance: 0,
+          bet: AppState.baseBet,
+          betPlaced: false,
+          insuranceBet: 0,
+          hands: [{ cards: [], status: 'BETTING' }],
+          currentHandIndex: 0
+        }];
+
+        broadcastGameState();
+        showToast(`Table Created! Code: ${AppState.roomCode}`, 'win');
+      });
+
+      document.getElementById('btnPlayVsBots').addEventListener('click', () => {
+        const name = document.getElementById('hostNameInput').value.trim() || 'John Doe';
+        AppState.playerName = name;
+        safeSetStorage('bj_player_name', name);
+
+        AppState.isHost = true;
+        AppState.maxSeats = 4;
+        AppState.baseBet = Math.max(5, parseInt(document.getElementById('hostBaseBetInput').value, 10) || 20);
+        AppState.turnTimerSec = parseInt(document.getElementById('hostTimerSelect').value, 10) || 0;
+        AppState.shoe = createShoe(6);
+
+        AppState.players = [
+          { id: 'p_me', token: AppState.clientToken, peerId: AppState.peerId, name: name, isBot: false, isOnline: true, netBalance: 0, bet: AppState.baseBet, betPlaced: false, insuranceBet: 0, hands: [{ cards: [], status: 'BETTING' }], currentHandIndex: 0 },
+          { id: 'bot_1', token: 'bot1', peerId: 'bot1', name: 'Bot Aarav', isBot: true, isOnline: true, netBalance: 0, bet: AppState.baseBet, betPlaced: true, insuranceBet: 0, hands: [{ cards: [], status: 'BETTING' }], currentHandIndex: 0 },
+          { id: 'bot_2', token: 'bot2', peerId: 'bot2', name: 'Bot Maya', isBot: true, isOnline: true, netBalance: 0, bet: AppState.baseBet, betPlaced: true, insuranceBet: 0, hands: [{ cards: [], status: 'BETTING' }], currentHandIndex: 0 }
+        ];
+
+        startBettingPhase();
+        showToast('Solo Bot Table Started!', 'win');
+      });
+
+      document.getElementById('btnJoinTable').addEventListener('click', () => {
+        const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+        const name = document.getElementById('joinNameInput').value.trim() || 'John Doe';
+
+        if (code.length !== 4) {
+          showToast('Please enter a valid 4-character code', 'error');
+          return;
+        }
+
+        connectToHostTable(code, name);
+      });
+
+      document.getElementById('btnVisitorJoinConfirm').addEventListener('click', () => {
+        const code = document.getElementById('visitorRoomCodeBadge').innerText;
+        const name = document.getElementById('visitorNameInput').value.trim() || 'John Doe';
+        connectToHostTable(code, name);
+      });
+
+      function connectToHostTable(code, name) {
+        AppState.playerName = name;
+        safeSetStorage('bj_player_name', name);
+        AppState.isHost = false;
+        AppState.roomCode = code;
+
+        if (AppState.p2pMode === 'local-bridge' || !AppState.peer) {
+          activateLocalP2PFallback('Sandbox P2P Bridge');
+          sendToHost({ type: 'JOIN_REQUEST', token: AppState.clientToken, name: name });
+          showToast(`Joined Room ${code} via Local Bridge`, 'win');
+          return;
+        }
+
+        try {
+          const targetPeerId = PEER_PREFIX + code;
+          const conn = AppState.peer.connect(targetPeerId);
+
+          conn.on('open', () => {
+            AppState.hostConn = conn;
+            conn.send({ type: 'JOIN_REQUEST', token: AppState.clientToken, name: name });
+          });
+
+          conn.on('data', (data) => handleHostPacketOnClient(data));
+
+          conn.on('close', () => {
+            showToast('Disconnected from Host Table', 'error');
+          });
+        } catch (err) {
+          activateLocalP2PFallback('Sandbox P2P Bridge');
+          sendToHost({ type: 'JOIN_REQUEST', token: AppState.clientToken, name: name });
+        }
+      }
+
+      document.getElementById('btnShareLobby').addEventListener('click', () => {
+        const joinUrl = `${window.location.origin}${window.location.pathname}?room=${AppState.roomCode}`;
+        if (navigator.share) {
+          navigator.share({ title: 'Join Casino Blackjack Table', url: joinUrl }).catch(() => {});
+        } else if (safeCopyText(joinUrl)) {
+          showToast('Invite link copied to clipboard!', 'win');
+        }
+      });
+
+      document.getElementById('headerRoomPill').addEventListener('click', () => {
+        const joinUrl = `${window.location.origin}${window.location.pathname}?room=${AppState.roomCode}`;
+        if (safeCopyText(joinUrl)) {
+          showToast(`Table Code ${AppState.roomCode} Copied!`, 'win');
+        }
+      });
+
+      document.getElementById('btnAddBotLobby').addEventListener('click', () => {
+        if (!AppState.isHost) return;
+        if (AppState.players.length >= AppState.maxSeats) {
+          showToast('Max seats reached', 'error');
+          return;
+        }
+        const botNames = ['Bot Samir', 'Bot Priya', 'Bot Rohan', 'Bot Anita'];
+        const bName = botNames[Math.floor(Math.random() * botNames.length)];
+        
+        AppState.players.push({
+          id: 'bot_' + Math.random().toString(36).substr(2, 6),
+          token: 'bot_' + Math.random(),
+          peerId: 'bot',
+          name: bName,
+          isBot: true,
+          isOnline: true,
+          netBalance: 0,
+          bet: AppState.baseBet,
+          betPlaced: true,
+          insuranceBet: 0,
+          hands: [{ cards: [], status: 'BETTING' }],
+          currentHandIndex: 0
+        });
+        broadcastGameState();
+      });
+
+      document.getElementById('btnStartGameLobby').addEventListener('click', () => {
+        if (!AppState.isHost) return;
+        startBettingPhase();
+      });
+
+      document.getElementById('btnLobbyLeave').addEventListener('click', () => {
+        location.reload();
+      });
+
+      document.getElementById('btnLeave').addEventListener('click', () => {
+        location.reload();
+      });
+
+      document.getElementById('lobbyPlayerList').addEventListener('click', (e) => {
+        if (e.target.classList.contains('btn-kick')) {
+          const id = e.target.dataset.id;
+          AppState.players = AppState.players.filter(p => p.id !== id);
+          broadcastGameState();
+        }
+      });
+
+      // In-Game Wager Adjustments (updates bet amount before clicking Place Bet)
+      document.getElementById('btnBetMinus').addEventListener('click', () => {
+        triggerHaptic();
+        const p = AppState.players.find(x => x.token === AppState.clientToken);
+        if (p) {
+          p.bet = Math.max(5, p.bet - 5);
+          sendToHost({ type: 'UPDATE_BET', token: AppState.clientToken, amount: p.bet });
+        }
+      });
+
+      document.getElementById('btnBetPlus').addEventListener('click', () => {
+        triggerHaptic();
+        const p = AppState.players.find(x => x.token === AppState.clientToken);
+        if (p) {
+          p.bet += 5;
+          sendToHost({ type: 'UPDATE_BET', token: AppState.clientToken, amount: p.bet });
+        }
+      });
+
+      document.getElementById('btnBetDouble').addEventListener('click', () => {
+        triggerHaptic();
+        const p = AppState.players.find(x => x.token === AppState.clientToken);
+        if (p) {
+          p.bet *= 2;
+          sendToHost({ type: 'UPDATE_BET', token: AppState.clientToken, amount: p.bet });
+        }
+      });
+
+      document.getElementById('btnBetMin').addEventListener('click', () => {
+        triggerHaptic();
+        const p = AppState.players.find(x => x.token === AppState.clientToken);
+        if (p) {
+          p.bet = AppState.baseBet;
+          sendToHost({ type: 'UPDATE_BET', token: AppState.clientToken, amount: p.bet });
+        }
+      });
+
+      document.getElementById('btnPlaceBet').addEventListener('click', () => {
+        triggerHaptic();
+        const p = AppState.players.find(x => x.token === AppState.clientToken);
+        if (p) {
+          sendToHost({ type: 'PLACE_BET', token: AppState.clientToken, amount: p.bet });
+          showToast('Bet Confirmed!', 'win');
+        }
+      });
+
+      document.getElementById('btnNextRoundNow').addEventListener('click', () => {
+        triggerHaptic();
+        sendToHost({ type: 'NEXT_ROUND_NOW', token: AppState.clientToken });
+      });
+
+      document.getElementById('btnHit').addEventListener('click', () => {
+        triggerHaptic();
+        sendToHost({ type: 'PLAYER_ACTION', token: AppState.clientToken, action: 'HIT' });
+      });
+
+      document.getElementById('btnStand').addEventListener('click', () => {
+        triggerHaptic();
+        sendToHost({ type: 'PLAYER_ACTION', token: AppState.clientToken, action: 'STAND' });
+      });
+
+      document.getElementById('btnDouble').addEventListener('click', () => {
+        triggerHaptic();
+        sendToHost({ type: 'PLAYER_ACTION', token: AppState.clientToken, action: 'DOUBLE' });
+      });
+
+      document.getElementById('btnSplit').addEventListener('click', () => {
+        triggerHaptic();
+        sendToHost({ type: 'PLAYER_ACTION', token: AppState.clientToken, action: 'SPLIT' });
+      });
+
+      document.getElementById('btnSurrender').addEventListener('click', () => {
+        triggerHaptic();
+        sendToHost({ type: 'PLAYER_ACTION', token: AppState.clientToken, action: 'SURRENDER' });
+      });
+
+      document.getElementById('btnInsuranceYes').addEventListener('click', () => {
+        sendToHost({ type: 'INSURANCE_DECISION', token: AppState.clientToken, decision: true });
+      });
+
+      document.getElementById('btnInsuranceNo').addEventListener('click', () => {
+        sendToHost({ type: 'INSURANCE_DECISION', token: AppState.clientToken, decision: false });
+      });
+
+      document.querySelectorAll('.btn-quick-emote').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const text = btn.dataset.msg;
+          sendToHost({ type: 'QUICK_CHAT', senderName: AppState.playerName, text: text });
+          showToast(`You: ${text}`, 'info');
+        });
+      });
+
+      document.getElementById('btnSound').addEventListener('click', () => {
+        soundEngine.muted = !soundEngine.muted;
+        document.getElementById('soundOnIcon').classList.toggle('hidden', soundEngine.muted);
+        document.getElementById('soundOffIcon').classList.toggle('hidden', !soundEngine.muted);
+      });
+
+      document.getElementById('btnFullscreen').addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      });
+
+      document.getElementById('btnRules').addEventListener('click', () => {
+        document.getElementById('rulesModal').classList.remove('hidden');
+      });
+      document.getElementById('btnCloseRules').addEventListener('click', () => {
+        document.getElementById('rulesModal').classList.add('hidden');
+      });
+
+      document.getElementById('btnHisab').addEventListener('click', () => {
+        renderHisabModal();
+        document.getElementById('hisabModal').classList.remove('hidden');
+      });
+
+      document.getElementById('btnCloseHisab').addEventListener('click', () => {
+        document.getElementById('hisabModal').classList.add('hidden');
+      });
+
+      document.getElementById('btnHostSettle').addEventListener('click', () => {
+        if (!AppState.isHost) return;
+        renderHisabModal(true);
+        document.getElementById('hisabModal').classList.remove('hidden');
+      });
+
+      function renderHisabModal() {
+        const balancesContainer = document.getElementById('hisabPlayerBalances');
+        balancesContainer.innerHTML = '';
+
+        const playerBals = AppState.players.map(p => ({ id: p.id, name: p.name, net: p.netBalance }));
+
+        playerBals.forEach(p => {
+          const row = document.createElement('div');
+          row.className = 'flex items-center justify-between p-2 rounded silk-inset';
+          row.innerHTML = `
+            <span class="text-gray-300 font-bold">${p.name}</span>
+            <span class="font-bold ${p.net >= 0 ? 'text-emerald-400' : 'text-red-400'}">
+              ${p.net >= 0 ? '+' : ''}Rs. ${p.net}
+            </span>
+          `;
+          balancesContainer.appendChild(row);
+        });
+
+        const settlementsBox = document.getElementById('hisabSettlementsList');
+        const transactions = computeMinSettlements(playerBals);
+
+        if (transactions.length === 0) {
+          settlementsBox.innerHTML = '<p class="text-gray-400">All player balances are balanced! Zero net debt transfers needed.</p>';
+        } else {
+          settlementsBox.innerHTML = '';
+          transactions.forEach(t => {
+            const item = document.createElement('div');
+            item.className = 'flex items-center justify-between p-2 rounded bg-amber-500/10 border border-amber-500/30 font-mono text-amber-200';
+            item.innerHTML = `
+              <span><b>${t.from}</b> pays <b>${t.to}</b>:</span>
+              <span class="font-black text-amber-300">Rs. ${t.amount}</span>
+            `;
+            settlementsBox.appendChild(item);
+          });
+        }
+
+        const historyBox = document.getElementById('hisabHistoryLog');
+        historyBox.innerHTML = AppState.hisabLog.length ? AppState.hisabLog.map(l => `<div>${l}</div>`).join('') : '<div class="text-gray-500">No rounds completed yet.</div>';
+      }
+
+    });
+  </script>
+</body>
+</html>
