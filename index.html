@@ -3,13 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Casino Blackjack — Silk Morphism P2P</title>
+  <title>Blackjack</title>
+
+  <!-- Primary SEO Meta Tags -->
+  <meta name="description" content="Play free multiplayer Blackjack online with friends or solo against AI. Fast, clean, and instant table rooms with live score and settlement tracking.">
+  <meta name="keywords" content="Blackjack, 21, Online Blackjack, Multiplayer Blackjack, Card Game, Casino Blackjack, Free Blackjack">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#020f0a">
+
+  <!-- Open Graph / Social Search Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Blackjack">
+  <meta property="og:title" content="Blackjack">
+  <meta property="og:description" content="Play multiplayer Blackjack online with friends or solo. Instant table codes, clean interface, and live settlement tracking.">
+  <meta property="og:image" content="favicon.png">
+
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Blackjack">
+  <meta name="twitter:description" content="Play multiplayer Blackjack online with friends or solo. Instant table codes and live settlement tracking.">
+  <meta name="twitter:image" content="favicon.png">
   
-  <!-- Web App & PWA Settings -->
+  <!-- Web App & Favicon -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Blackjack">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠</text></svg>">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
   
   <!-- Google Fonts: Inter & Playfair Display -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -84,6 +105,8 @@
       background-attachment: fixed;
       color: #f3f4f6;
       font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
       user-select: none;
       -webkit-user-select: none;
       touch-action: manipulation;
@@ -171,14 +194,19 @@
       width: 58px;
       height: 84px;
       border-radius: 7px;
-      background: #ffffff;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
       color: #111827;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.52), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
       position: relative;
       font-weight: 700;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
       transform-style: preserve-3d;
       flex-shrink: 0;
+    }
+
+    .poker-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(0, 0, 0, 0.1);
     }
 
     @media (min-width: 640px) {
@@ -219,6 +247,10 @@
       overflow: hidden;
     }
 
+    #bottomActionBar {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
     /* Scrollbar styling */
     ::-webkit-scrollbar {
       width: 6px;
@@ -255,7 +287,6 @@
         </div>
         <div>
           <h1 class="font-serif font-bold text-base sm:text-lg tracking-wide text-amber-300 leading-tight">Blackjack</h1>
-          <p class="text-[10px] text-emerald-400/80 font-mono hidden sm:block">Falas P2P Silk Engine</p>
         </div>
 
         <!-- Room Code Pill (In-Game / Lobby) -->
@@ -313,10 +344,10 @@
         <!-- Header Banner -->
         <div class="text-center mb-6">
           <h2 class="text-2xl sm:text-3xl font-serif font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-500">
-            Nepali Falas Casino Blackjack
+            Blackjack
           </h2>
           <p class="text-xs sm:text-sm text-emerald-300/80 mt-1">
-            4-Tier Dark Silk P2P Table • Zero-Server • Instant Host & Join
+            Play with friends or practice solo.
           </p>
         </div>
 
@@ -324,19 +355,19 @@
           <!-- Left Column: Create Table Options -->
           <div class="space-y-4">
             <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 border-b border-emerald-500/20 pb-1">
-              1. Host Table Settings
+              Create Table
             </h3>
             
             <!-- Player Name Input -->
             <div>
-              <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Your Name / Nickname</label>
-              <input type="text" id="hostNameInput" placeholder="John Doe" maxlength="14" class="w-full px-3.5 py-2.5 rounded-xl silk-inset text-sm font-semibold text-amber-200 focus:outline-none focus:border-amber-400 transition-colors">
+              <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Your Name</label>
+              <input type="text" id="hostNameInput" placeholder="Player" maxlength="14" class="w-full px-3.5 py-2.5 rounded-xl silk-inset text-sm font-semibold text-amber-200 focus:outline-none focus:border-amber-400 transition-colors">
             </div>
 
             <!-- Table Capacity & Base Bet -->
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Max Seats</label>
+                <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Seats</label>
                 <select id="hostSeatsSelect" class="w-full px-3 py-2.5 rounded-xl silk-inset text-sm font-semibold text-emerald-200 focus:outline-none focus:border-amber-400">
                   <option value="2">2 Players</option>
                   <option value="3">3 Players</option>
@@ -355,7 +386,7 @@
 
             <!-- Quick Base Bet Chips -->
             <div class="flex items-center gap-1.5 pt-1">
-              <span class="text-[10px] text-gray-400 uppercase font-bold">Presets:</span>
+              <span class="text-[10px] text-gray-400 uppercase font-bold">Chips:</span>
               <div class="preset-chip btn-div px-2 py-0.5 rounded-md silk-inset text-xs font-bold text-amber-300" data-val="5">5</div>
               <div class="preset-chip btn-div px-2 py-0.5 rounded-md silk-inset text-xs font-bold text-amber-300" data-val="10">10</div>
               <div class="preset-chip btn-div px-2 py-0.5 rounded-md silk-inset text-xs font-bold text-amber-300" data-val="20">20</div>
@@ -367,46 +398,46 @@
             <div>
               <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Turn Timer</label>
               <select id="hostTimerSelect" class="w-full px-3 py-2.5 rounded-xl silk-inset text-sm font-semibold text-emerald-200 focus:outline-none focus:border-amber-400">
-                <option value="15">15 Seconds (Fast)</option>
-                <option value="25" selected>25 Seconds (Standard)</option>
-                <option value="40">40 Seconds (Relaxed)</option>
-                <option value="60">60 Seconds</option>
-                <option value="0">Off (No Limit)</option>
+                <option value="15">15s</option>
+                <option value="25" selected>25s</option>
+                <option value="40">40s</option>
+                <option value="60">60s</option>
+                <option value="0">Off</option>
               </select>
             </div>
 
-            <!-- Collapsible Casino House Rules Panel -->
+            <!-- Collapsible House Rules Panel -->
             <div class="border border-emerald-500/20 rounded-xl overflow-hidden silk-inset">
               <div id="btnToggleHouseRules" class="btn-div w-full px-3 py-2 flex items-center justify-between text-xs font-semibold text-amber-300 bg-emerald-950/40">
-                <span>Casino House Rules Configuration</span>
+                <span>House Rules</span>
                 <svg id="houseRulesArrow" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
               </div>
               <div id="houseRulesContent" class="hidden p-3 space-y-2 text-xs border-t border-emerald-500/20">
                 <div class="flex items-center justify-between">
-                  <span class="text-gray-300">Shoe Decks:</span>
+                  <span class="text-gray-300">Decks:</span>
                   <select id="ruleDecks" class="bg-black/60 text-amber-200 rounded px-2 py-1 text-xs border border-emerald-500/30">
-                    <option value="6" selected>6-Deck Shoe</option>
-                    <option value="8">8-Deck Shoe</option>
+                    <option value="6" selected>6 Decks</option>
+                    <option value="8">8 Decks</option>
                   </select>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-gray-300">Dealer Soft 17:</span>
                   <select id="ruleSoft17" class="bg-black/60 text-amber-200 rounded px-2 py-1 text-xs border border-emerald-500/30">
-                    <option value="S17" selected>Stands on S17</option>
-                    <option value="H17">Hits on Soft 17</option>
+                    <option value="S17" selected>Stand</option>
+                    <option value="H17">Hit</option>
                   </select>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-gray-300">Blackjack Payout:</span>
                   <select id="ruleBJPay" class="bg-black/60 text-amber-200 rounded px-2 py-1 text-xs border border-emerald-500/30">
-                    <option value="1.5" selected>3:2 (Standard)</option>
+                    <option value="1.5" selected>3:2</option>
                     <option value="1.2">6:5</option>
                   </select>
                 </div>
                 <div class="flex items-center justify-between">
-                  <span class="text-gray-300">Late Surrender:</span>
+                  <span class="text-gray-300">Surrender:</span>
                   <select id="ruleSurrender" class="bg-black/60 text-amber-200 rounded px-2 py-1 text-xs border border-emerald-500/30">
-                    <option value="true" selected>Allowed (0.5x)</option>
+                    <option value="true" selected>Allowed</option>
                     <option value="false">Off</option>
                   </select>
                 </div>
@@ -416,10 +447,10 @@
             <!-- Host Action Buttons -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
               <div id="btnCreateHostTable" class="btn-div w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-950/60 border border-emerald-400/40">
-                Create Room (P2P)
+                Create Table
               </div>
               <div id="btnPlayVsBots" class="btn-div w-full py-3 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 text-white font-bold text-sm shadow-lg shadow-amber-950/60 border border-amber-400/40">
-                Play vs AI Bots
+                Play Solo
               </div>
             </div>
           </div>
@@ -428,36 +459,33 @@
           <div class="space-y-4 flex flex-col justify-between border-t md:border-t-0 md:border-l border-emerald-500/20 pt-4 md:pt-0 md:pl-6">
             <div>
               <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 border-b border-emerald-500/20 pb-1">
-                2. Join Existing Room
+                Join Table
               </h3>
-              <p class="text-xs text-gray-400 my-2">Enter the 4-character table code provided by your friend.</p>
+              <p class="text-xs text-gray-400 my-2">Enter the 4-character table code.</p>
               
               <div class="space-y-3 mt-3">
                 <div>
                   <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Table Code</label>
-                  <input type="text" id="joinCodeInput" placeholder="e.g. A7X9" uppercase maxlength="4" class="w-full px-3.5 py-2.5 rounded-xl silk-inset text-center font-mono text-lg font-black tracking-widest text-amber-300 focus:outline-none focus:border-amber-400 transition-colors uppercase">
+                  <input type="text" id="joinCodeInput" placeholder="A7X9" maxlength="4" class="w-full px-3.5 py-2.5 rounded-xl silk-inset text-center font-mono text-lg font-black tracking-widest text-amber-300 focus:outline-none focus:border-amber-400 transition-colors uppercase">
                 </div>
 
                 <div>
                   <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Your Name</label>
-                  <input type="text" id="joinNameInput" placeholder="John Doe" maxlength="14" class="w-full px-3.5 py-2.5 rounded-xl silk-inset text-sm font-semibold text-amber-200 focus:outline-none focus:border-amber-400">
+                  <input type="text" id="joinNameInput" placeholder="Player" maxlength="14" class="w-full px-3.5 py-2.5 rounded-xl silk-inset text-sm font-semibold text-amber-200 focus:outline-none focus:border-amber-400">
                 </div>
 
                 <div id="btnJoinTable" class="btn-div w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-gray-950 font-black text-sm shadow-lg shadow-amber-950/60 border border-amber-300/50">
-                  Join Room →
+                  Join →
                 </div>
               </div>
             </div>
 
-            <!-- P2P Status Indicator Box -->
+            <!-- Status Indicator Box -->
             <div class="silk-inset p-3.5 rounded-xl border border-emerald-500/20">
               <div class="flex items-center justify-between text-xs">
-                <span class="text-gray-400">PeerJS Network Status:</span>
+                <span class="text-gray-400">Connection:</span>
                 <span id="peerStatusBadge" class="font-bold text-amber-400">Connecting...</span>
               </div>
-              <p class="text-[10px] text-gray-400 mt-1">
-                Direct WebRTC peer-to-peer link. Zero third-party backend servers.
-              </p>
             </div>
           </div>
         </div>
@@ -474,18 +502,18 @@
         <div class="w-12 h-12 mx-auto rounded-full bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-2xl font-serif">
           ♠
         </div>
-        <h2 class="text-xl font-serif font-bold text-amber-300">You've Been Invited!</h2>
+        <h2 class="text-xl font-serif font-bold text-amber-300">Join Table</h2>
         <p class="text-xs text-gray-300">
-          Joining Table Code: <span id="visitorRoomCodeBadge" class="font-mono font-bold text-amber-400 text-base">----</span>
+          Table Code: <span id="visitorRoomCodeBadge" class="font-mono font-bold text-amber-400 text-base">----</span>
         </p>
 
         <div class="text-left">
-          <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Enter Your Display Name</label>
-          <input type="text" id="visitorNameInput" placeholder="John Doe" maxlength="14" class="w-full px-3.5 py-2.5 rounded-xl silk-inset text-sm font-semibold text-amber-200 focus:outline-none focus:border-amber-400">
+          <label class="block text-xs text-emerald-200/70 mb-1 font-medium">Your Name</label>
+          <input type="text" id="visitorNameInput" placeholder="Player" maxlength="14" class="w-full px-3.5 py-2.5 rounded-xl silk-inset text-sm font-semibold text-amber-200 focus:outline-none focus:border-amber-400">
         </div>
 
         <div id="btnVisitorJoinConfirm" class="btn-div w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm border border-emerald-400/40">
-          Join Casino Table Now
+          Join Table
         </div>
       </div>
     </main>
@@ -499,8 +527,8 @@
         
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-emerald-500/20 pb-4">
           <div>
-            <h2 class="text-xl font-serif font-bold text-amber-300 text-center sm:text-left">Table Lobby</h2>
-            <p class="text-xs text-emerald-300/80 text-center sm:text-left">Waiting for players to join seat positions</p>
+            <h2 class="text-xl font-serif font-bold text-amber-300 text-center sm:text-left">Lobby</h2>
+            <p class="text-xs text-emerald-300/80 text-center sm:text-left">Share the code or link to invite players.</p>
           </div>
           
           <div class="flex items-center gap-2">
@@ -508,7 +536,7 @@
               ----
             </div>
             <div id="btnShareLobby" class="btn-div px-3 py-1.5 rounded-xl silk-surface text-xs font-bold text-amber-300 border border-amber-500/30 hover:border-amber-400">
-              Share Link 🔗
+              Copy Link
             </div>
           </div>
         </div>
@@ -523,7 +551,7 @@
 
         <!-- Seated Players Grid -->
         <div class="space-y-2">
-          <h3 class="text-xs font-bold uppercase text-amber-400 tracking-wider">Seated Players (<span id="lobbyPlayerCount">0</span>/<span id="lobbyMaxSeats">4</span>)</h3>
+          <h3 class="text-xs font-bold uppercase text-amber-400 tracking-wider">Players (<span id="lobbyPlayerCount">0</span>/<span id="lobbyMaxSeats">4</span>)</h3>
           <div id="lobbyPlayerList" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <!-- Dynamic Lobby Player Cards inserted here -->
           </div>
@@ -581,7 +609,7 @@
       <div class="w-full max-w-3xl mx-auto felt-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center justify-center relative shadow-2xl shrink-0 my-auto">
         <!-- Dealer Info Header -->
         <div class="flex items-center gap-2 mb-2">
-          <span class="text-xs font-serif font-black tracking-widest text-amber-300 uppercase">The House Dealer</span>
+          <span class="text-xs font-serif font-black tracking-widest text-amber-300 uppercase">Dealer</span>
           <span id="dealerScoreBadge" class="px-2 py-0.5 rounded-full silk-inset text-xs font-mono font-bold text-emerald-300 border border-emerald-500/30">
             ?
           </span>
@@ -686,7 +714,7 @@
         <!-- SHOWDOWN BAR -->
         <div id="barShowdownControls" class="hidden flex items-center justify-between gap-3 p-2.5 silk-surface rounded-xl border border-amber-500/40">
           <div class="text-xs text-emerald-200 font-semibold">
-            Round complete! Next deal starting shortly...
+            Next hand starting soon...
           </div>
           <div id="btnNextRoundNow" class="btn-div hidden px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-600 text-gray-950 text-xs font-black uppercase tracking-wider">
             Next Hand →
@@ -704,14 +732,14 @@
   <div id="hisabModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md hidden">
     <div class="w-full max-w-lg silk-surface rounded-2xl p-5 border border-amber-500/40 shadow-2xl flex flex-col max-h-[85vh]">
       <div class="flex items-center justify-between border-b border-emerald-500/20 pb-3">
-        <h3 class="text-lg font-serif font-bold text-amber-300">Live Hisab &amp; Debt Settlement</h3>
+        <h3 class="text-lg font-serif font-bold text-amber-300">Hisab &amp; Settlement</h3>
         <div id="btnCloseHisab" class="btn-div w-7 h-7 rounded-lg silk-inset text-gray-400 hover:text-white">✕</div>
       </div>
 
       <div class="flex-1 overflow-y-auto py-4 space-y-4">
         <!-- Player Balances Summary -->
         <div>
-          <h4 class="text-xs font-bold uppercase text-amber-400 mb-2">Current Net Balances</h4>
+          <h4 class="text-xs font-bold uppercase text-amber-400 mb-2">Balances</h4>
           <div id="hisabPlayerBalances" class="space-y-1.5 text-xs font-mono">
             <!-- Dynamic Net Balances -->
           </div>
@@ -719,15 +747,15 @@
 
         <!-- Minimum Settlements Solution -->
         <div>
-          <h4 class="text-xs font-bold uppercase text-amber-400 mb-2">Minimum Transfer Settlements</h4>
+          <h4 class="text-xs font-bold uppercase text-amber-400 mb-2">Settlements</h4>
           <div id="hisabSettlementsList" class="p-3 rounded-xl silk-inset space-y-2 text-xs">
-            <p class="text-gray-400">No settlements calculated yet. Click Settle Table to close ledger.</p>
+            <p class="text-gray-400">No transfers needed.</p>
           </div>
         </div>
 
         <!-- Round History Log -->
         <div>
-          <h4 class="text-xs font-bold uppercase text-amber-400 mb-2">Round History Log</h4>
+          <h4 class="text-xs font-bold uppercase text-amber-400 mb-2">History</h4>
           <div id="hisabHistoryLog" class="p-3 rounded-xl silk-inset space-y-2 text-[11px] font-mono max-h-40 overflow-y-auto">
             <!-- Dynamic log entries -->
           </div>
@@ -743,21 +771,20 @@
   <div id="rulesModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md hidden">
     <div class="w-full max-w-2xl silk-surface rounded-2xl p-5 border border-emerald-500/40 shadow-2xl flex flex-col max-h-[90vh]">
       <div class="flex items-center justify-between border-b border-emerald-500/20 pb-3">
-        <h3 class="text-lg font-serif font-bold text-amber-300">Blackjack Rules & Basic Strategy</h3>
+        <h3 class="text-lg font-serif font-bold text-amber-300">Rules &amp; Strategy</h3>
         <div id="btnCloseRules" class="btn-div w-7 h-7 rounded-lg silk-inset text-gray-400 hover:text-white">✕</div>
       </div>
 
       <div class="flex-1 overflow-y-auto py-4 space-y-4 text-xs">
         <div>
-          <h4 class="font-bold text-amber-400 text-sm mb-1">Standard Casino Rules</h4>
+          <h4 class="font-bold text-amber-400 text-sm mb-1">Rules</h4>
           <p class="text-emerald-100/80 leading-relaxed">
-            Beat the Dealer by getting a hand value as close to 21 as possible without exceeding it (Busting). 
-            Face cards are worth 10, Aces are worth 1 or 11. Natural Blackjack pays 3:2. Dealer stands on 17.
+            Get closer to 21 than the dealer without going over. Face cards count as 10, Aces as 1 or 11. Natural Blackjack pays 3:2.
           </p>
         </div>
 
         <div>
-          <h4 class="font-bold text-amber-400 text-sm mb-2">Basic Strategy Guide Sheet</h4>
+          <h4 class="font-bold text-amber-400 text-sm mb-2">Basic Strategy</h4>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] font-mono">
             <div class="p-2.5 rounded-xl silk-inset">
               <span class="block font-bold text-amber-300 mb-1 border-b border-emerald-500/20 pb-1">Hard Totals</span>
@@ -1063,7 +1090,7 @@
       const msg = String(event?.message || event?.error?.message || '');
       if (msg.includes('peerjs') || msg.includes('WebSocket') || event?.error?.name === 'SecurityError') {
         event.preventDefault();
-        activateLocalP2PFallback('Sandbox P2P Bridge');
+        activateLocalP2PFallback('Ready');
       }
     });
 
@@ -1072,7 +1099,7 @@
       const msg = String(reason?.message || reason || '');
       if (msg.includes('peerjs') || msg.includes('WebSocket') || reason?.name === 'SecurityError') {
         event.preventDefault();
-        activateLocalP2PFallback('Sandbox P2P Bridge');
+        activateLocalP2PFallback('Ready');
       }
     });
 
@@ -1156,7 +1183,7 @@
     }
 
     /* Activate Sandbox / Same-Browser P2P Bridge when WebSockets are blocked */
-    function activateLocalP2PFallback(label = 'Local P2P Ready') {
+    function activateLocalP2PFallback(label = 'Ready') {
       AppState.p2pMode = 'local-bridge';
       if (!AppState.roomCode) {
         AppState.roomCode = Math.random().toString(36).substr(2, 4).toUpperCase();
@@ -1193,7 +1220,7 @@
       const badge = document.getElementById('peerStatusBadge');
 
       if (!canUseExternalWebSockets() || typeof Peer === 'undefined') {
-        activateLocalP2PFallback('Sandbox P2P Ready');
+        activateLocalP2PFallback('Ready');
         return;
       }
 
@@ -1207,7 +1234,7 @@
           AppState.peerId = id;
           AppState.roomCode = code;
           if (badge) {
-            badge.innerText = 'Connected (WebRTC)';
+            badge.innerText = 'Online';
             badge.className = 'font-bold text-emerald-400';
           }
         });
@@ -1223,11 +1250,11 @@
             initPeerJS();
             return;
           }
-          activateLocalP2PFallback('Local P2P Ready');
+          activateLocalP2PFallback('Ready');
         });
       } catch (err) {
         // Catches synchronous SecurityError when WebSockets are blocked in sandboxed iframes
-        activateLocalP2PFallback('Sandbox P2P Ready');
+        activateLocalP2PFallback('Ready');
       }
     }
 
@@ -1887,15 +1914,15 @@
       document.getElementById('hudShoeCount').innerText = state.shoeCount;
 
       const hudStatus = document.getElementById('hudStatusText');
-      if (state.gameState === 'BETTING') hudStatus.innerText = 'Place your wagers...';
-      else if (state.gameState === 'DEALING') hudStatus.innerText = 'Dealing initial cards...';
-      else if (state.gameState === 'INSURANCE') hudStatus.innerText = 'Insurance decisions...';
+      if (state.gameState === 'BETTING') hudStatus.innerText = 'Place your bet';
+      else if (state.gameState === 'DEALING') hudStatus.innerText = 'Dealing...';
+      else if (state.gameState === 'INSURANCE') hudStatus.innerText = 'Insurance?';
       else if (state.gameState === 'PLAYER_TURNS') {
         const activeP = state.players[state.activeTurnIndex];
-        hudStatus.innerText = activeP ? `${activeP.name}'s turn...` : 'Player turns...';
+        hudStatus.innerText = activeP ? `${activeP.name}'s turn` : 'Player turns';
       }
-      else if (state.gameState === 'DEALER_TURN') hudStatus.innerText = 'Dealer drawing hand...';
-      else if (state.gameState === 'SHOWDOWN') hudStatus.innerText = 'Round Showdown & Settlements';
+      else if (state.gameState === 'DEALER_TURN') hudStatus.innerText = "Dealer's turn";
+      else if (state.gameState === 'SHOWDOWN') hudStatus.innerText = 'Round complete';
 
       renderDealerPanel(state.dealerHand, state.gameState);
 
@@ -2151,7 +2178,7 @@
       });
 
       document.getElementById('btnCreateHostTable').addEventListener('click', () => {
-        const name = document.getElementById('hostNameInput').value.trim() || 'John Doe';
+        const name = document.getElementById('hostNameInput').value.trim() || 'Player';
         AppState.playerName = name;
         safeSetStorage('bj_player_name', name);
 
@@ -2185,11 +2212,11 @@
         }];
 
         broadcastGameState();
-        showToast(`Table Created! Code: ${AppState.roomCode}`, 'win');
+        showToast(`Table created • ${AppState.roomCode}`, 'win');
       });
 
       document.getElementById('btnPlayVsBots').addEventListener('click', () => {
-        const name = document.getElementById('hostNameInput').value.trim() || 'John Doe';
+        const name = document.getElementById('hostNameInput').value.trim() || 'Player';
         AppState.playerName = name;
         safeSetStorage('bj_player_name', name);
 
@@ -2206,15 +2233,15 @@
         ];
 
         startBettingPhase();
-        showToast('Solo Bot Table Started!', 'win');
+        showToast('Game started', 'win');
       });
 
       document.getElementById('btnJoinTable').addEventListener('click', () => {
         const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
-        const name = document.getElementById('joinNameInput').value.trim() || 'John Doe';
+        const name = document.getElementById('joinNameInput').value.trim() || 'Player';
 
         if (code.length !== 4) {
-          showToast('Please enter a valid 4-character code', 'error');
+          showToast('Enter a 4-character code', 'error');
           return;
         }
 
@@ -2223,7 +2250,7 @@
 
       document.getElementById('btnVisitorJoinConfirm').addEventListener('click', () => {
         const code = document.getElementById('visitorRoomCodeBadge').innerText;
-        const name = document.getElementById('visitorNameInput').value.trim() || 'John Doe';
+        const name = document.getElementById('visitorNameInput').value.trim() || 'Player';
         connectToHostTable(code, name);
       });
 
@@ -2234,9 +2261,9 @@
         AppState.roomCode = code;
 
         if (AppState.p2pMode === 'local-bridge' || !AppState.peer) {
-          activateLocalP2PFallback('Sandbox P2P Bridge');
+          activateLocalP2PFallback('Ready');
           sendToHost({ type: 'JOIN_REQUEST', token: AppState.clientToken, name: name });
-          showToast(`Joined Room ${code} via Local Bridge`, 'win');
+          showToast(`Joined ${code}`, 'win');
           return;
         }
 
@@ -2252,10 +2279,10 @@
           conn.on('data', (data) => handleHostPacketOnClient(data));
 
           conn.on('close', () => {
-            showToast('Disconnected from Host Table', 'error');
+            showToast('Disconnected from table', 'error');
           });
         } catch (err) {
-          activateLocalP2PFallback('Sandbox P2P Bridge');
+          activateLocalP2PFallback('Ready');
           sendToHost({ type: 'JOIN_REQUEST', token: AppState.clientToken, name: name });
         }
       }
@@ -2263,9 +2290,16 @@
       document.getElementById('btnShareLobby').addEventListener('click', () => {
         const joinUrl = `${window.location.origin}${window.location.pathname}?room=${AppState.roomCode}`;
         if (navigator.share) {
-          navigator.share({ title: 'Join Casino Blackjack Table', url: joinUrl }).catch(() => {});
+          navigator.share({ title: 'Blackjack', url: joinUrl }).catch(() => {});
         } else if (safeCopyText(joinUrl)) {
-          showToast('Invite link copied to clipboard!', 'win');
+          showToast('Link copied', 'win');
+        }
+      });
+
+      document.getElementById('headerRoomPill').addEventListener('click', () => {
+        const joinUrl = `${window.location.origin}${window.location.pathname}?room=${AppState.roomCode}`;
+        if (safeCopyText(joinUrl)) {
+          showToast(`Copied ${AppState.roomCode}`, 'win');
         }
       });
 
@@ -2365,7 +2399,7 @@
         const p = AppState.players.find(x => x.token === AppState.clientToken);
         if (p) {
           sendToHost({ type: 'PLACE_BET', token: AppState.clientToken, amount: p.bet });
-          showToast('Bet Confirmed!', 'win');
+          showToast('Bet placed', 'win');
         }
       });
 
@@ -2473,7 +2507,7 @@
         const transactions = computeMinSettlements(playerBals);
 
         if (transactions.length === 0) {
-          settlementsBox.innerHTML = '<p class="text-gray-400">All player balances are balanced! Zero net debt transfers needed.</p>';
+          settlementsBox.innerHTML = '<p class="text-gray-400">No transfers needed.</p>';
         } else {
           settlementsBox.innerHTML = '';
           transactions.forEach(t => {
