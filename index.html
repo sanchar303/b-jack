@@ -191,13 +191,14 @@
 
     /* Playing Card Styles */
     .poker-card {
-      width: 58px;
-      height: 84px;
-      border-radius: 7px;
+      width: 60px;
+      height: 86px;
+      border-radius: 8px;
       background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
       color: #111827;
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.52), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
       position: relative;
+      overflow: hidden;
       font-weight: 700;
       transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
       transform-style: preserve-3d;
@@ -211,16 +212,57 @@
 
     @media (min-width: 640px) {
       .poker-card {
-        width: 72px;
-        height: 104px;
+        width: 74px;
+        height: 106px;
         border-radius: 9px;
       }
     }
 
     .poker-card.small-card {
-      width: 36px;
-      height: 52px;
-      border-radius: 5px;
+      width: 42px;
+      height: 60px;
+      border-radius: 6px;
+    }
+
+    .poker-card .card-corner {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      pointer-events: none;
+    }
+
+    .poker-card .card-corner-tl {
+      top: 5px;
+      left: 5px;
+    }
+
+    .poker-card .card-corner-br {
+      bottom: 5px;
+      right: 5px;
+      transform: rotate(180deg);
+    }
+
+    .poker-card.small-card .card-corner-tl {
+      top: 3px;
+      left: 3.5px;
+    }
+
+    .poker-card.small-card .card-corner-br {
+      bottom: 3px;
+      right: 3.5px;
+    }
+
+    .poker-card .card-center-pip {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      pointer-events: none;
     }
 
     .poker-card.red-suit {
@@ -233,7 +275,7 @@
     }
 
     .poker-card.back::before {
-      content: '♠♥';
+      content: '♠';
       position: absolute;
       inset: 4px;
       border: 1px dashed rgba(255, 255, 255, 0.25);
@@ -241,9 +283,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: rgba(255, 255, 255, 0.2);
-      font-size: 14px;
-      letter-spacing: 2px;
+      color: rgba(255, 255, 255, 0.22);
+      font-size: 16px;
+    }
+
+    .poker-card.small-card.back::before {
+      inset: 3px;
+      font-size: 12px;
     }
 
     /* Live Game Viewport Lock */
@@ -597,8 +643,8 @@
       </div>
 
       <!-- DEALER FELT PANEL -->
-      <div class="w-full max-w-3xl mx-auto felt-panel rounded-2xl p-3 sm:p-4 flex flex-col items-center justify-center relative shadow-2xl shrink-0 my-auto">
-        <div class="flex items-center gap-2 mb-2">
+      <div class="w-full max-w-3xl mx-auto felt-panel rounded-2xl p-2.5 sm:p-3.5 flex flex-col items-center justify-center relative shadow-2xl shrink-0">
+        <div class="flex items-center gap-2 mb-1.5">
           <span class="text-xs font-serif font-black tracking-widest text-amber-300 uppercase">Dealer</span>
           <span id="dealerScoreBadge" class="px-2 py-0.5 rounded-full silk-inset text-xs font-mono font-bold text-emerald-300 border border-emerald-500/30">
             ?
@@ -1834,18 +1880,22 @@
         return el;
       }
 
-      el.className = `poker-card animate-card-flip ${card.isRed ? "red-suit" : ""} ${isSmall ? "small-card" : ""} flex flex-col justify-between p-1 sm:p-1.5`;
+      const cornerTextCls = isSmall ? "text-[9px]" : "text-xs sm:text-sm";
+      const cornerSuitCls = isSmall ? "text-[8px] mt-[1px]" : "text-[11px] sm:text-xs mt-[1px]";
+      const centerPipCls = isSmall ? "text-base" : "text-2xl sm:text-3xl";
+
+      el.className = `poker-card animate-card-flip ${card.isRed ? "red-suit" : ""} ${isSmall ? "small-card" : ""}`;
       el.innerHTML = `
-        <div class="leading-none text-left ${isSmall ? "text-[10px]" : "text-xs sm:text-sm"}">
-          <div>${escHtml(card.rank)}</div>
-          <div>${escHtml(card.suit)}</div>
+        <div class="card-corner card-corner-tl ${cornerTextCls}">
+          <span>${escHtml(card.rank)}</span>
+          <span class="${cornerSuitCls}">${escHtml(card.suit)}</span>
         </div>
-        <div class="self-center ${isSmall ? "text-sm" : "text-xl sm:text-2xl"} leading-none">
+        <div class="card-center-pip ${centerPipCls}">
           ${escHtml(card.suit)}
         </div>
-        <div class="leading-none text-left self-end rotate-180 ${isSmall ? "text-[10px]" : "text-xs sm:text-sm"}">
-          <div>${escHtml(card.rank)}</div>
-          <div>${escHtml(card.suit)}</div>
+        <div class="card-corner card-corner-br ${cornerTextCls}">
+          <span>${escHtml(card.rank)}</span>
+          <span class="${cornerSuitCls}">${escHtml(card.suit)}</span>
         </div>
       `;
       return el;
@@ -2399,12 +2449,14 @@
           showToast("Max seats reached", "error");
           return;
         }
-        const botNames = ["Bot Samir", "Bot Priya", "Bot Rohan", "Bot Anita"];
-        const bName = botNames[Math.floor(Math.random() * botNames.length)];
-
+        const botNames = ["Bot Samir", "Bot Priya", "Bot Rohan", "Bot Anita", "Bot Kiran", "Bot Tara"];
+        const usedNames = new Set(AppState.players.map(p => p.name));
+        const available = botNames.filter(n => !usedNames.has(n));
+        const pool = available.length > 0 ? available : botNames;
+        const bName = pool[Math.floor(Math.random() * pool.length)];
         AppState.players.push({
           id: "bot_" + Math.random().toString(36).substr(2, 6),
-          token: "bot_" + Math.random(),
+          token: "bot_" + Math.random().toString(36).substr(2, 6),
           peerId: "bot",
           name: bName,
           isBot: true,
